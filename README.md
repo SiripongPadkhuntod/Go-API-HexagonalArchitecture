@@ -11,6 +11,7 @@ internal/core/port           outbound ports
 internal/core/service        use cases / inbound port
 internal/adapter/http        Gin handlers and routes
 internal/adapter/repository  outbound repository adapters
+internal/adapter/outboundapi outbound HTTP API adapter with circuit breaker
 internal/config              runtime configuration
 ```
 
@@ -64,6 +65,17 @@ GET    /api/v1/users/:id
 PUT    /api/v1/users/:id
 DELETE /api/v1/users/:id
 ```
+
+## Outbound API Adapter
+
+The project includes an outbound HTTP API adapter with an embedded circuit breaker:
+
+```text
+internal/core/port/outbound_api.go
+internal/adapter/outboundapi/httpclient
+```
+
+The circuit opens after repeated failed external calls, blocks requests while open, then allows a half-open probe after the timeout.
 
 ## Example
 
