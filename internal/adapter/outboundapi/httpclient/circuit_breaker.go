@@ -3,8 +3,6 @@ package httpclient
 import (
 	"sync"
 	"time"
-
-	"hexagonalarchitecture/internal/core/port"
 )
 
 type CircuitBreakerSettings struct {
@@ -58,7 +56,7 @@ func (b *circuitBreaker) beforeRequest(now time.Time) error {
 	}
 
 	if now.Sub(b.openedAt) < b.settings.OpenStateTimeout {
-		return port.ErrCircuitBreakerOpen
+		return ErrCircuitBreakerOpen
 	}
 
 	b.state = circuitHalfOpen

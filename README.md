@@ -106,10 +106,11 @@ start HTTP server with graceful shutdown
 The project includes an outbound HTTP API adapter with an embedded circuit breaker:
 
 ```text
-internal/core/port/outbound_api.go
+internal/core/port/user_event_publisher.go
 internal/adapter/outboundapi/httpclient
 ```
 
+The core depends on the business port `UserEventPublisher`; HTTP request details stay inside the outbound adapter.
 The circuit opens after repeated failed external calls, blocks requests while open, then allows a half-open probe after the timeout.
 When `OUTBOUND_API_BASE_URL` is empty, the app injects a no-op outbound adapter so local CRUD remains self-contained.
 

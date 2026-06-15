@@ -64,10 +64,7 @@ func main() {
 	}
 	defer dbPool.Close()
 
-	userRepo, err := postgres.NewUserRepository(ctx, dbPool)
-	if err != nil {
-		logger.Fatal("failed to initialize user repository", zap.Error(err))
-	}
+	userRepo := postgres.NewUserRepository(dbPool)
 
 	outboundClient := newOutboundAPIClient(cfg)
 	userService := service.NewUserService(userRepo, outboundClient)
@@ -103,7 +100,7 @@ func main() {
 	logger.Info("server stopped gracefully")
 }
 
-func newOutboundAPIClient(cfg config.Config) port.OutboundAPIClient {
+func newOutboundAPIClient(cfg config.Config) port.UserEventPublisher {
 	if cfg.OutboundAPI.BaseURL == "" {
 		return noop.NewClient()
 	}

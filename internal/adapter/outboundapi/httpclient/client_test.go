@@ -7,8 +7,6 @@ import (
 	"net/http/httptest"
 	"testing"
 	"time"
-
-	"hexagonalarchitecture/internal/core/port"
 )
 
 func TestClientOpensCircuitAfterFailures(t *testing.T) {
@@ -30,7 +28,7 @@ func TestClientOpensCircuitAfterFailures(t *testing.T) {
 		t.Fatalf("new client: %v", err)
 	}
 
-	request := port.OutboundAPIRequest{Method: http.MethodGet, Path: "/external"}
+	request := Request{Method: http.MethodGet, Path: "/external"}
 
 	if _, err := client.Do(context.Background(), request); err == nil {
 		t.Fatal("expected first request to fail")
@@ -38,7 +36,7 @@ func TestClientOpensCircuitAfterFailures(t *testing.T) {
 	if _, err := client.Do(context.Background(), request); err == nil {
 		t.Fatal("expected second request to fail")
 	}
-	if _, err := client.Do(context.Background(), request); !errors.Is(err, port.ErrCircuitBreakerOpen) {
+	if _, err := client.Do(context.Background(), request); !errors.Is(err, ErrCircuitBreakerOpen) {
 		t.Fatalf("expected open circuit error, got %v", err)
 	}
 	if calls != 2 {
@@ -72,12 +70,12 @@ func TestClientHalfOpenClosesAfterSuccessfulProbe(t *testing.T) {
 	}
 	client.now = func() time.Time { return now }
 
-	request := port.OutboundAPIRequest{Method: http.MethodGet, Path: "/external"}
+	request := Request{Method: http.MethodGet, Path: "/external"}
 
 	if _, err := client.Do(context.Background(), request); err == nil {
 		t.Fatal("expected request to fail")
 	}
-	if _, err := client.Do(context.Background(), request); !errors.Is(err, port.ErrCircuitBreakerOpen) {
+	if _, err := client.Do(context.Background(), request); !errors.Is(err, ErrCircuitBreakerOpen) {
 		t.Fatalf("expected open circuit error, got %v", err)
 	}
 

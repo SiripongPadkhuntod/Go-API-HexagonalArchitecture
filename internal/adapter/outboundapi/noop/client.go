@@ -2,8 +2,8 @@ package noop
 
 import (
 	"context"
-	"net/http"
 
+	"hexagonalarchitecture/internal/core/domain"
 	"hexagonalarchitecture/internal/core/port"
 )
 
@@ -13,6 +13,8 @@ func NewClient() *Client {
 	return &Client{}
 }
 
-func (c *Client) Do(ctx context.Context, request port.OutboundAPIRequest) (port.OutboundAPIResponse, error) {
-	return port.OutboundAPIResponse{StatusCode: http.StatusNoContent}, nil
+var _ port.UserEventPublisher = (*Client)(nil)
+
+func (c *Client) PublishUserCreated(ctx context.Context, user domain.User) error {
+	return nil
 }

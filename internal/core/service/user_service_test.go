@@ -2,18 +2,16 @@ package service
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"strings"
 	"testing"
 
 	"hexagonalarchitecture/internal/core/domain"
-	"hexagonalarchitecture/internal/core/port"
 )
 
 func TestCreateUsesRepositoryAndOutboundAdapterInterfaces(t *testing.T) {
 	repo := &mockUserRepository{}
-	outbound := &mockOutboundAPIClient{}
+	outbound := &mockUserEventPublisher{}
 	users := NewUserService(repo, outbound)
 
 	user, err := users.Create(context.Background(), CreateUserInput{
@@ -27,31 +25,20 @@ func TestCreateUsesRepositoryAndOutboundAdapterInterfaces(t *testing.T) {
 	if !repo.createCalled {
 		t.Fatal("expected repository Create to be called")
 	}
-	if !outbound.doCalled {
-		t.Fatal("expected outbound API Do to be called")
-	}
-	if outbound.request.Method != "POST" {
-		t.Fatalf("expected outbound method POST, got %s", outbound.request.Method)
-	}
-	if outbound.request.Path != "/users/events" {
-		t.Fatalf("expected outbound path /users/events, got %s", outbound.request.Path)
+	if !outbound.publishCalled {
+		t.Fatal("expected user event publisher to be called")
 	}
 	if user.Email != "jane@example.com" {
 		t.Fatalf("expected normalized email, got %s", user.Email)
 	}
-
-	var event userCreatedEvent
-	if err := json.Unmarshal(outbound.request.Body, &event); err != nil {
-		t.Fatalf("unmarshal outbound event: %v", err)
-	}
-	if event.ID != user.ID || event.Name != user.Name || event.Email != user.Email {
-		t.Fatalf("outbound event does not match created user: %+v", event)
+	if outbound.publishedUser.ID != user.ID || outbound.publishedUser.Name != user.Name || outbound.publishedUser.Email != user.Email {
+		t.Fatalf("published user does not match created user: %+v", outbound.publishedUser)
 	}
 }
 
 func TestCreateInvalidInputDoesNotCallDependencies(t *testing.T) {
 	repo := &mockUserRepository{}
-	outbound := &mockOutboundAPIClient{}
+	outbound := &mockUserEventPublisher{}
 	users := NewUserService(repo, outbound)
 
 	_, err := users.Create(context.Background(), CreateUserInput{
@@ -67,7 +54,7 @@ func TestCreateInvalidInputDoesNotCallDependencies(t *testing.T) {
 	if repo.createCalled {
 		t.Fatal("repository should not be called for invalid input")
 	}
-	if outbound.doCalled {
+	if outbound.publishCalled {
 		t.Fatal("outbound API should not be called for invalid input")
 	}
 }
@@ -75,7 +62,7 @@ func TestCreateInvalidInputDoesNotCallDependencies(t *testing.T) {
 func TestCreateReturnsRepositoryErrorWithoutCallingOutbound(t *testing.T) {
 	repoErr := errors.New("repository failed")
 	repo := &mockUserRepository{createErr: repoErr}
-	outbound := &mockOutboundAPIClient{}
+	outbound := &mockUserEventPublisher{}
 	users := NewUserService(repo, outbound)
 
 	_, err := users.Create(context.Background(), CreateUserInput{
@@ -88,15 +75,39 @@ func TestCreateReturnsRepositoryErrorWithoutCallingOutbound(t *testing.T) {
 	if !repo.createCalled {
 		t.Fatal("expected repository Create to be called")
 	}
-	if outbound.doCalled {
+	if outbound.publishCalled {
 		t.Fatal("outbound API should not be called when repository fails")
+	}
+}
+
+func TestCreateReturnsUserWhenBestEffortPublisherFails(t *testing.T) {
+	publisherErr := errors.New("publisher failed")
+	repo := &mockUserRepository{}
+	outbound := &mockUserEventPublisher{err: publisherErr}
+	users := NewUserService(repo, outbound)
+
+	user, err := users.Create(context.Background(), CreateUserInput{
+		Name:  "Jane Doe",
+		Email: "jane@example.com",
+	})
+	if err != nil {
+		t.Fatalf("create should ignore best-effort publisher error, got %v", err)
+	}
+	if strings.TrimSpace(user.ID) == "" {
+		t.Fatal("expected created user id")
+	}
+	if !repo.createCalled {
+		t.Fatal("expected repository Create to be called")
+	}
+	if !outbound.publishCalled {
+		t.Fatal("expected user event publisher to be called")
 	}
 }
 
 func TestUpdateUsesRepositoryInterfaceOnly(t *testing.T) {
 	existingUser := domain.NewUser("usr_123", "Jane Doe", "jane@example.com")
 	repo := &mockUserRepository{findByIDUser: existingUser}
-	outbound := &mockOutboundAPIClient{}
+	outbound := &mockUserEventPublisher{}
 	users := NewUserService(repo, outbound)
 
 	updatedUser, err := users.Update(context.Background(), "usr_123", UpdateUserInput{
@@ -113,7 +124,7 @@ func TestUpdateUsesRepositoryInterfaceOnly(t *testing.T) {
 	if !repo.updateCalled {
 		t.Fatal("expected repository Update to be called")
 	}
-	if outbound.doCalled {
+	if outbound.publishCalled {
 		t.Fatal("outbound API should not be called by update logic")
 	}
 	if updatedUser.Name != "Jane Smith" {
@@ -169,18 +180,14 @@ func (r *mockUserRepository) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-type mockOutboundAPIClient struct {
-	doCalled bool
-	request  port.OutboundAPIRequest
-	err      error
+type mockUserEventPublisher struct {
+	publishCalled bool
+	publishedUser domain.User
+	err           error
 }
 
-func (c *mockOutboundAPIClient) Do(ctx context.Context, request port.OutboundAPIRequest) (port.OutboundAPIResponse, error) {
-	c.doCalled = true
-	c.request = request
-	if c.err != nil {
-		return port.OutboundAPIResponse{}, c.err
-	}
-
-	return port.OutboundAPIResponse{StatusCode: 204}, nil
+func (p *mockUserEventPublisher) PublishUserCreated(ctx context.Context, user domain.User) error {
+	p.publishCalled = true
+	p.publishedUser = user
+	return p.err
 }

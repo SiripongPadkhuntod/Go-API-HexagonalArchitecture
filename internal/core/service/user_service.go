@@ -2,9 +2,7 @@ package service
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"net/http"
 	"regexp"
 	"strings"
 	"time"
@@ -36,21 +34,15 @@ type UpdateUserInput struct {
 	Email string `json:"email" binding:"required"`
 }
 
-type userCreatedEvent struct {
-	ID    string `json:"id"`
-	Name  string `json:"name"`
-	Email string `json:"email"`
-}
-
 type userService struct {
-	repo     port.UserRepository
-	outbound port.OutboundAPIClient
+	repo      port.UserRepository
+	publisher port.UserEventPublisher
 }
 
-func NewUserService(repo port.UserRepository, outbound port.OutboundAPIClient) UserService {
+func NewUserService(repo port.UserRepository, publisher port.UserEventPublisher) UserService {
 	return &userService{
-		repo:     repo,
-		outbound: outbound,
+		repo:      repo,
+		publisher: publisher,
 	}
 }
 
@@ -65,9 +57,7 @@ func (s *userService) Create(ctx context.Context, input CreateUserInput) (domain
 		return domain.User{}, err
 	}
 
-	if err := s.publishUserCreated(ctx, createdUser); err != nil {
-		return domain.User{}, err
-	}
+	_ = s.publisher.PublishUserCreated(ctx, createdUser)
 
 	return createdUser, nil
 }
@@ -122,25 +112,4 @@ func validateUser(name, email string) error {
 
 func newID() string {
 	return fmt.Sprintf("usr_%d", time.Now().UTC().UnixNano())
-}
-
-func (s *userService) publishUserCreated(ctx context.Context, user domain.User) error {
-	payload, err := json.Marshal(userCreatedEvent{
-		ID:    user.ID,
-		Name:  user.Name,
-		Email: user.Email,
-	})
-	if err != nil {
-		return err
-	}
-
-	_, err = s.outbound.Do(ctx, port.OutboundAPIRequest{
-		Method: http.MethodPost,
-		Path:   "/users/events",
-		Headers: map[string]string{
-			"Content-Type": "application/json",
-		},
-		Body: payload,
-	})
-	return err
 }

@@ -13,13 +13,8 @@ type UserRepository struct {
 	pool *pgxpool.Pool
 }
 
-func NewUserRepository(ctx context.Context, pool *pgxpool.Pool) (*UserRepository, error) {
-	repo := &UserRepository{pool: pool}
-	if err := repo.migrate(ctx); err != nil {
-		return nil, err
-	}
-
-	return repo, nil
+func NewUserRepository(pool *pgxpool.Pool) *UserRepository {
+	return &UserRepository{pool: pool}
 }
 
 func (r *UserRepository) Create(ctx context.Context, user domain.User) (domain.User, error) {
@@ -90,23 +85,6 @@ func (r *UserRepository) Delete(ctx context.Context, id string) error {
 	}
 
 	return nil
-}
-
-func (r *UserRepository) migrate(ctx context.Context) error {
-	const query = `
-		CREATE TABLE IF NOT EXISTS users (
-			id TEXT PRIMARY KEY,
-			name TEXT NOT NULL,
-			email TEXT NOT NULL,
-			created_at TIMESTAMPTZ NOT NULL,
-			updated_at TIMESTAMPTZ NOT NULL
-		);
-
-		CREATE UNIQUE INDEX IF NOT EXISTS users_email_unique ON users (email);
-	`
-
-	_, err := r.pool.Exec(ctx, query)
-	return err
 }
 
 func (r *UserRepository) scanUser(ctx context.Context, query string, args ...any) (domain.User, error) {
