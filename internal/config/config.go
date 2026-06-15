@@ -4,8 +4,9 @@ import "os"
 
 // Config keeps runtime settings for the API.
 type Config struct {
-	Port     string
-	Database DatabaseConfig
+	Port        string
+	Database    DatabaseConfig
+	OutboundAPI OutboundAPIConfig
 }
 
 type DatabaseConfig struct {
@@ -15,6 +16,10 @@ type DatabaseConfig struct {
 	Password string
 	Name     string
 	SSLMode  string
+}
+
+type OutboundAPIConfig struct {
+	BaseURL string
 }
 
 func Load() Config {
@@ -32,6 +37,9 @@ func Load() Config {
 			Password: envOrDefault("DATABASE_PASSWORD", "postgres"),
 			Name:     envOrDefault("DATABASE_NAME", "hexagonal_architecture"),
 			SSLMode:  envOrDefault("DATABASE_SSLMODE", "disable"),
+		},
+		OutboundAPI: OutboundAPIConfig{
+			BaseURL: os.Getenv("OUTBOUND_API_BASE_URL"),
 		},
 	}
 }

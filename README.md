@@ -9,7 +9,7 @@ cmd/api                     application entrypoint
 internal/core/domain         business entities
 internal/core/port           outbound ports
 internal/core/service        use cases / inbound port
-internal/adapter/http        Gin handlers and routes
+internal/adapter/handler/http Gin handlers and routes
 internal/adapter/repository  outbound repository adapters
 internal/adapter/outboundapi outbound HTTP API adapter with circuit breaker
 internal/config              runtime configuration
@@ -53,6 +53,7 @@ DATABASE_USER=postgres
 DATABASE_PASSWORD=postgres
 DATABASE_NAME=hexagonal_architecture
 DATABASE_SSLMODE=disable
+OUTBOUND_API_BASE_URL=
 ```
 
 ## Endpoints
@@ -76,6 +77,7 @@ internal/adapter/outboundapi/httpclient
 ```
 
 The circuit opens after repeated failed external calls, blocks requests while open, then allows a half-open probe after the timeout.
+When `OUTBOUND_API_BASE_URL` is empty, the app injects a no-op outbound adapter so local CRUD remains self-contained.
 
 ## Example
 

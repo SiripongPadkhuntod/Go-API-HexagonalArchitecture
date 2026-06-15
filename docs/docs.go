@@ -38,7 +38,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/internal_adapter_http_handler.ErrorResponse"
+                            "$ref": "#/definitions/internal_adapter_handler_http.ErrorResponse"
                         }
                     }
                 }
@@ -76,13 +76,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/internal_adapter_http_handler.ErrorResponse"
+                            "$ref": "#/definitions/internal_adapter_handler_http.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/internal_adapter_http_handler.ErrorResponse"
+                            "$ref": "#/definitions/internal_adapter_handler_http.ErrorResponse"
                         }
                     }
                 }
@@ -117,19 +117,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/internal_adapter_http_handler.ErrorResponse"
+                            "$ref": "#/definitions/internal_adapter_handler_http.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/internal_adapter_http_handler.ErrorResponse"
+                            "$ref": "#/definitions/internal_adapter_handler_http.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/internal_adapter_http_handler.ErrorResponse"
+                            "$ref": "#/definitions/internal_adapter_handler_http.ErrorResponse"
                         }
                     }
                 }
@@ -174,19 +174,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/internal_adapter_http_handler.ErrorResponse"
+                            "$ref": "#/definitions/internal_adapter_handler_http.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/internal_adapter_http_handler.ErrorResponse"
+                            "$ref": "#/definitions/internal_adapter_handler_http.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/internal_adapter_http_handler.ErrorResponse"
+                            "$ref": "#/definitions/internal_adapter_handler_http.ErrorResponse"
                         }
                     }
                 }
@@ -216,19 +216,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/internal_adapter_http_handler.ErrorResponse"
+                            "$ref": "#/definitions/internal_adapter_handler_http.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/internal_adapter_http_handler.ErrorResponse"
+                            "$ref": "#/definitions/internal_adapter_handler_http.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/internal_adapter_http_handler.ErrorResponse"
+                            "$ref": "#/definitions/internal_adapter_handler_http.ErrorResponse"
                         }
                     }
                 }
@@ -248,7 +248,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/internal_adapter_http_handler.HealthResponse"
+                            "$ref": "#/definitions/internal_adapter_handler_http.HealthResponse"
                         }
                     }
                 }
@@ -306,7 +306,7 @@ const docTemplate = `{
                 }
             }
         },
-        "internal_adapter_http_handler.ErrorResponse": {
+        "internal_adapter_handler_http.ErrorResponse": {
             "type": "object",
             "properties": {
                 "error": {
@@ -315,7 +315,7 @@ const docTemplate = `{
                 }
             }
         },
-        "internal_adapter_http_handler.HealthResponse": {
+        "internal_adapter_handler_http.HealthResponse": {
             "type": "object",
             "properties": {
                 "status": {

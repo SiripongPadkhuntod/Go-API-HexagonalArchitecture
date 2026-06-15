@@ -2,7 +2,9 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"regexp"
 	"strings"
 	"time"
@@ -32,12 +34,22 @@ type UpdateUserInput struct {
 	Email string `json:"email" binding:"required"`
 }
 
-type userService struct {
-	repo port.UserRepository
+type userCreatedEvent struct {
+	ID    string `json:"id"`
+	Name  string `json:"name"`
+	Email string `json:"email"`
 }
 
-func NewUserService(repo port.UserRepository) UserService {
-	return &userService{repo: repo}
+type userService struct {
+	repo     port.UserRepository
+	outbound port.OutboundAPIClient
+}
+
+func NewUserService(repo port.UserRepository, outbound port.OutboundAPIClient) UserService {
+	return &userService{
+		repo:     repo,
+		outbound: outbound,
+	}
 }
 
 func (s *userService) Create(ctx context.Context, input CreateUserInput) (domain.User, error) {
@@ -46,7 +58,16 @@ func (s *userService) Create(ctx context.Context, input CreateUserInput) (domain
 	}
 
 	user := domain.NewUser(newID(), input.Name, input.Email)
-	return s.repo.Create(ctx, user)
+	createdUser, err := s.repo.Create(ctx, user)
+	if err != nil {
+		return domain.User{}, err
+	}
+
+	if err := s.publishUserCreated(ctx, createdUser); err != nil {
+		return domain.User{}, err
+	}
+
+	return createdUser, nil
 }
 
 func (s *userService) FindAll(ctx context.Context) ([]domain.User, error) {
@@ -99,4 +120,25 @@ func validateUser(name, email string) error {
 
 func newID() string {
 	return fmt.Sprintf("usr_%d", time.Now().UTC().UnixNano())
+}
+
+func (s *userService) publishUserCreated(ctx context.Context, user domain.User) error {
+	payload, err := json.Marshal(userCreatedEvent{
+		ID:    user.ID,
+		Name:  user.Name,
+		Email: user.Email,
+	})
+	if err != nil {
+		return err
+	}
+
+	_, err = s.outbound.Do(ctx, port.OutboundAPIRequest{
+		Method: http.MethodPost,
+		Path:   "/users/events",
+		Headers: map[string]string{
+			"Content-Type": "application/json",
+		},
+		Body: payload,
+	})
+	return err
 }

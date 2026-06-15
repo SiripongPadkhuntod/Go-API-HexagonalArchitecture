@@ -33,13 +33,13 @@ definitions:
     - email
     - name
     type: object
-  internal_adapter_http_handler.ErrorResponse:
+  internal_adapter_handler_http.ErrorResponse:
     properties:
       error:
         example: 'invalid input: email is invalid'
         type: string
     type: object
-  internal_adapter_http_handler.HealthResponse:
+  internal_adapter_handler_http.HealthResponse:
     properties:
       status:
         example: ok
@@ -67,7 +67,7 @@ paths:
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/internal_adapter_http_handler.ErrorResponse'
+            $ref: '#/definitions/internal_adapter_handler_http.ErrorResponse'
       summary: List users
       tags:
       - Users
@@ -92,11 +92,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/internal_adapter_http_handler.ErrorResponse'
+            $ref: '#/definitions/internal_adapter_handler_http.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/internal_adapter_http_handler.ErrorResponse'
+            $ref: '#/definitions/internal_adapter_handler_http.ErrorResponse'
       summary: Create user
       tags:
       - Users
@@ -117,15 +117,15 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/internal_adapter_http_handler.ErrorResponse'
+            $ref: '#/definitions/internal_adapter_handler_http.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/internal_adapter_http_handler.ErrorResponse'
+            $ref: '#/definitions/internal_adapter_handler_http.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/internal_adapter_http_handler.ErrorResponse'
+            $ref: '#/definitions/internal_adapter_handler_http.ErrorResponse'
       summary: Delete user
       tags:
       - Users
@@ -147,15 +147,15 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/internal_adapter_http_handler.ErrorResponse'
+            $ref: '#/definitions/internal_adapter_handler_http.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/internal_adapter_http_handler.ErrorResponse'
+            $ref: '#/definitions/internal_adapter_handler_http.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/internal_adapter_http_handler.ErrorResponse'
+            $ref: '#/definitions/internal_adapter_handler_http.ErrorResponse'
       summary: Get user by ID
       tags:
       - Users
@@ -185,15 +185,15 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/internal_adapter_http_handler.ErrorResponse'
+            $ref: '#/definitions/internal_adapter_handler_http.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/internal_adapter_http_handler.ErrorResponse'
+            $ref: '#/definitions/internal_adapter_handler_http.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/internal_adapter_http_handler.ErrorResponse'
+            $ref: '#/definitions/internal_adapter_handler_http.ErrorResponse'
       summary: Update user
       tags:
       - Users
@@ -206,7 +206,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_adapter_http_handler.HealthResponse'
+            $ref: '#/definitions/internal_adapter_handler_http.HealthResponse'
       summary: Health check
       tags:
       - Health

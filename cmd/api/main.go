@@ -6,9 +6,12 @@ import (
 	"time"
 
 	_ "hexagonalarchitecture/docs"
-	"hexagonalarchitecture/internal/adapter/http/router"
+	httpadapter "hexagonalarchitecture/internal/adapter/handler/http"
+	"hexagonalarchitecture/internal/adapter/outboundapi/httpclient"
+	"hexagonalarchitecture/internal/adapter/outboundapi/noop"
 	"hexagonalarchitecture/internal/adapter/repository/postgres"
 	"hexagonalarchitecture/internal/config"
+	"hexagonalarchitecture/internal/core/port"
 	"hexagonalarchitecture/internal/core/service"
 )
 
@@ -29,12 +32,28 @@ func main() {
 	}
 	defer userRepo.Close()
 
-	userService := service.NewUserService(userRepo)
+	outboundClient := newOutboundAPIClient(cfg)
+	userService := service.NewUserService(userRepo, outboundClient)
 
-	r := router.New(userService)
+	r := httpadapter.New(userService)
 
 	log.Printf("server is running on %s", cfg.ServerAddress())
 	if err := r.Run(cfg.ServerAddress()); err != nil {
 		log.Fatalf("failed to run server: %v", err)
 	}
+}
+
+func newOutboundAPIClient(cfg config.Config) port.OutboundAPIClient {
+	if cfg.OutboundAPI.BaseURL == "" {
+		return noop.NewClient()
+	}
+
+	client, err := httpclient.New(httpclient.Config{
+		BaseURL: cfg.OutboundAPI.BaseURL,
+	})
+	if err != nil {
+		log.Fatalf("failed to create outbound API client: %v", err)
+	}
+
+	return client
 }
