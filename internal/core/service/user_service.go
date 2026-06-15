@@ -15,6 +15,8 @@ import (
 
 var emailPattern = regexp.MustCompile(`^[^\s@]+@[^\s@]+\.[^\s@]+$`)
 
+const errIDRequired = "%w: id is required"
+
 // UserService is the inbound application port for user use cases.
 type UserService interface {
 	Create(ctx context.Context, input CreateUserInput) (domain.User, error)
@@ -76,7 +78,7 @@ func (s *userService) FindAll(ctx context.Context) ([]domain.User, error) {
 
 func (s *userService) FindByID(ctx context.Context, id string) (domain.User, error) {
 	if strings.TrimSpace(id) == "" {
-		return domain.User{}, fmt.Errorf("%w: id is required", domain.ErrInvalidInput)
+		return domain.User{}, fmt.Errorf(errIDRequired, domain.ErrInvalidInput)
 	}
 
 	return s.repo.FindByID(ctx, id)
@@ -84,7 +86,7 @@ func (s *userService) FindByID(ctx context.Context, id string) (domain.User, err
 
 func (s *userService) Update(ctx context.Context, id string, input UpdateUserInput) (domain.User, error) {
 	if strings.TrimSpace(id) == "" {
-		return domain.User{}, fmt.Errorf("%w: id is required", domain.ErrInvalidInput)
+		return domain.User{}, fmt.Errorf(errIDRequired, domain.ErrInvalidInput)
 	}
 	if err := validateUser(input.Name, input.Email); err != nil {
 		return domain.User{}, err
@@ -101,7 +103,7 @@ func (s *userService) Update(ctx context.Context, id string, input UpdateUserInp
 
 func (s *userService) Delete(ctx context.Context, id string) error {
 	if strings.TrimSpace(id) == "" {
-		return fmt.Errorf("%w: id is required", domain.ErrInvalidInput)
+		return fmt.Errorf(errIDRequired, domain.ErrInvalidInput)
 	}
 
 	return s.repo.Delete(ctx, id)

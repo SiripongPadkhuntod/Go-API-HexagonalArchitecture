@@ -2,10 +2,18 @@ package main
 
 import (
 	"context"
-	"log"
+	"errors"
+	"net/http"
+	"os/signal"
+	"syscall"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus"
+	"go.opentelemetry.io/otel"
+	"go.uber.org/zap"
+
 	_ "hexagonalarchitecture/docs"
+	databasepostgres "hexagonalarchitecture/internal/adapter/database/postgres"
 	httpadapter "hexagonalarchitecture/internal/adapter/handler/http"
 	"hexagonalarchitecture/internal/adapter/outboundapi/httpclient"
 	"hexagonalarchitecture/internal/adapter/outboundapi/noop"
@@ -13,6 +21,8 @@ import (
 	"hexagonalarchitecture/internal/config"
 	"hexagonalarchitecture/internal/core/port"
 	"hexagonalarchitecture/internal/core/service"
+	observabilitylogger "hexagonalarchitecture/internal/observability/logger"
+	"hexagonalarchitecture/internal/observability/tracer"
 )
 
 // @title Hexagonal Architecture CRUD API
@@ -23,24 +33,74 @@ import (
 func main() {
 	cfg := config.Load()
 
+	logger, err := observabilitylogger.New()
+	if err != nil {
+		panic(err)
+	}
+	zap.ReplaceGlobals(logger)
+	defer logger.Sync()
+
+	tracerProvider, err := tracer.NewProvider()
+	if err != nil {
+		logger.Fatal("failed to initialize tracer", zap.Error(err))
+	}
+	defer func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := tracer.Shutdown(ctx, tracerProvider); err != nil {
+			logger.Error("failed to shutdown tracer", zap.Error(err))
+		}
+	}()
+
+	metricsRegistry := prometheus.NewRegistry()
+	httpadapter.RegisterMetrics(metricsRegistry)
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	userRepo, err := postgres.NewUserRepository(ctx, cfg.Database.URL())
+	dbPool, err := databasepostgres.NewPool(ctx, cfg.Database.URL())
 	if err != nil {
-		log.Fatalf("failed to connect database: %v", err)
+		logger.Fatal("failed to connect database", zap.Error(err))
 	}
-	defer userRepo.Close()
+	defer dbPool.Close()
+
+	userRepo, err := postgres.NewUserRepository(ctx, dbPool)
+	if err != nil {
+		logger.Fatal("failed to initialize user repository", zap.Error(err))
+	}
 
 	outboundClient := newOutboundAPIClient(cfg)
 	userService := service.NewUserService(userRepo, outboundClient)
 
-	r := httpadapter.New(userService)
-
-	log.Printf("server is running on %s", cfg.ServerAddress())
-	if err := r.Run(cfg.ServerAddress()); err != nil {
-		log.Fatalf("failed to run server: %v", err)
+	r := httpadapter.New(userService, logger, otel.Tracer("hexagonalarchitecture-api"), metricsRegistry)
+	server := &http.Server{
+		Addr:    cfg.ServerAddress(),
+		Handler: r,
 	}
+
+	logger.Info("server is running", zap.String("address", cfg.ServerAddress()))
+	go func() {
+		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			logger.Fatal("failed to run server", zap.Error(err))
+		}
+	}()
+
+	shutdownCtx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
+	<-shutdownCtx.Done()
+	stop()
+
+	logger.Info("shutdown signal received")
+
+	ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := server.Shutdown(ctx); err != nil {
+		logger.Fatal("failed to shutdown server gracefully", zap.Error(err))
+	}
+
+	logger.Info("server stopped gracefully")
 }
 
 func newOutboundAPIClient(cfg config.Config) port.OutboundAPIClient {
@@ -52,7 +112,7 @@ func newOutboundAPIClient(cfg config.Config) port.OutboundAPIClient {
 		BaseURL: cfg.OutboundAPI.BaseURL,
 	})
 	if err != nil {
-		log.Fatalf("failed to create outbound API client: %v", err)
+		zap.L().Fatal("failed to create outbound API client", zap.Error(err))
 	}
 
 	return client

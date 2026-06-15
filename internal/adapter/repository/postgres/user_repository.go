@@ -13,27 +13,13 @@ type UserRepository struct {
 	pool *pgxpool.Pool
 }
 
-func NewUserRepository(ctx context.Context, databaseURL string) (*UserRepository, error) {
-	pool, err := pgxpool.New(ctx, databaseURL)
-	if err != nil {
-		return nil, err
-	}
-
+func NewUserRepository(ctx context.Context, pool *pgxpool.Pool) (*UserRepository, error) {
 	repo := &UserRepository{pool: pool}
-	if err := repo.ping(ctx); err != nil {
-		pool.Close()
-		return nil, err
-	}
 	if err := repo.migrate(ctx); err != nil {
-		pool.Close()
 		return nil, err
 	}
 
 	return repo, nil
-}
-
-func (r *UserRepository) Close() {
-	r.pool.Close()
 }
 
 func (r *UserRepository) Create(ctx context.Context, user domain.User) (domain.User, error) {
@@ -104,10 +90,6 @@ func (r *UserRepository) Delete(ctx context.Context, id string) error {
 	}
 
 	return nil
-}
-
-func (r *UserRepository) ping(ctx context.Context) error {
-	return r.pool.Ping(ctx)
 }
 
 func (r *UserRepository) migrate(ctx context.Context) error {

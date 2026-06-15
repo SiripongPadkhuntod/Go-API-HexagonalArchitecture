@@ -5,14 +5,19 @@ A small CRUD REST API built with Gin and a Hexagonal Architecture layout.
 ## Structure
 
 ```text
-cmd/api                     application entrypoint
-internal/core/domain         business entities
-internal/core/port           outbound ports
-internal/core/service        use cases / inbound port
-internal/adapter/handler/http Gin handlers and routes
-internal/adapter/repository  outbound repository adapters
-internal/adapter/outboundapi outbound HTTP API adapter with circuit breaker
-internal/config              runtime configuration
+cmd/api                         application entrypoint
+internal/core/domain             business entities
+internal/core/port               ports / interfaces
+internal/core/service            use cases / business logic
+internal/adapter/handler/http    inbound HTTP adapter with Gin
+internal/adapter/database        database pool adapters
+internal/adapter/repository      outbound database adapters
+internal/adapter/outboundapi     outbound HTTP API adapter with circuit breaker
+internal/config                  runtime configuration
+internal/observability           logger and tracer setup
+pkg                              reusable public packages, when needed
+docs                             generated Swagger docs
+docker                           local infrastructure
 ```
 
 ## Run
@@ -60,11 +65,40 @@ OUTBOUND_API_BASE_URL=
 
 ```text
 GET    /health
+GET    /metrics
 POST   /api/v1/users
 GET    /api/v1/users
 GET    /api/v1/users/:id
 PUT    /api/v1/users/:id
 DELETE /api/v1/users/:id
+```
+
+## Observability
+
+The HTTP router includes the Phase 1 observability pieces:
+
+```text
+Recovery middleware
+Request ID middleware
+Context-aware zap logger
+OpenTelemetry request tracing
+Prometheus metrics middleware
+/metrics endpoint
+```
+
+## Wiring
+
+Application dependencies are wired in [cmd/api/main.go](cmd/api/main.go) in this order:
+
+```text
+load config
+init logger and tracer
+init metrics registry
+init PostgreSQL pool
+inject pool into Postgres repository
+inject repository and outbound adapter into usecase
+inject usecase into HTTP handler/router
+start HTTP server with graceful shutdown
 ```
 
 ## Outbound API Adapter
