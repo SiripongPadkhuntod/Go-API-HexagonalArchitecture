@@ -10,13 +10,13 @@ import (
 
 func (s *appService) Create(ctx context.Context, input usecase.CreateUserInput) (domain.User, error) {
 	if err := validateUser(input.Name, input.Email); err != nil {
-		return domain.User{}, err
+		return domain.User{}, usecase.ToAppError(err)
 	}
 
 	user := domain.NewUser(s.ids.NewID(), input.Name, input.Email, s.clock.Now())
 	createdUser, err := s.repo.Create(ctx, user)
 	if err != nil {
-		return domain.User{}, err
+		return domain.User{}, usecase.ToAppError(err)
 	}
 
 	if err := s.publisher.PublishUserCreated(ctx, createdUser); err != nil { // บรรทัดนี้คือการส่ง event ไปยัง outbound adapter เพื่อนำไปประมวลผลต่อ

@@ -22,8 +22,8 @@ const (
 		UserColumnUpdatedAt
 )
 
-// UserEntity is the PostgreSQL persistence shape for the users table. 
-// UserEntity เปรียบเสมือนรูปร่างของข้อมูลที่จะถูกเก็บในฐานข้อมูล 
+// UserEntity is the PostgreSQL persistence shape for the users table.
+// UserEntity เปรียบเสมือนรูปร่างของข้อมูลที่จะถูกเก็บในฐานข้อมูล
 // UserEntity จะถูกใช้เพื่อแปลงข้อมูลระหว่าง domain.User และ PostgreSQL
 type UserEntity struct {
 	ID        string    `db:"id"`

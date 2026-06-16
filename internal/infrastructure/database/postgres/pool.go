@@ -23,8 +23,8 @@ func NewPool(ctx context.Context, databaseURL string) (*pgxpool.Pool, error) { /
 		return nil, err
 	}
 	if err := pool.Ping(ctx); err != nil { // Ping() คือ function ที่ใช้สำหรับ ping database เพื่อตรวจสอบว่าฐานข้อมูลพร้อมใช้งานหรือไม่
-		pool.Close()    // Close() คือ function ที่ใช้สำหรับปิด database
-		return nil, err 	
+		pool.Close() // Close() คือ function ที่ใช้สำหรับปิด database
+		return nil, err
 	}
 
 	return pool, nil

@@ -321,9 +321,21 @@ const docTemplate = `{
         "http.ErrorResponse": {
             "type": "object",
             "properties": {
-                "error": {
-                    "type": "string",
-                    "example": "invalid input: email is invalid"
+                "code": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/usecase.ErrorCode"
+                        }
+                    ],
+                    "example": "9988"
+                },
+                "message": {
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/usecase.ErrorMessage"
+                        }
+                    ],
+                    "example": "Invalid request parameters."
                 }
             }
         },
@@ -335,6 +347,40 @@ const docTemplate = `{
                     "example": "ok"
                 }
             }
+        },
+        "usecase.ErrorCode": {
+            "type": "string",
+            "enum": [
+                "9988",
+                "9987",
+                "9984",
+                "9983",
+                "5000"
+            ],
+            "x-enum-varnames": [
+                "ERROR_CODE_BAD_REQUEST",
+                "ERROR_CODE_INVALID_INPUT",
+                "ERROR_CODE_USER_NOT_FOUND",
+                "ERROR_CODE_USER_ALREADY_EXISTS",
+                "ERROR_CODE_INTERNAL_SERVER_ERROR"
+            ]
+        },
+        "usecase.ErrorMessage": {
+            "type": "string",
+            "enum": [
+                "Invalid request parameters.",
+                "Invalid input",
+                "User not found",
+                "Email is already in use",
+                "Internal Server Error"
+            ],
+            "x-enum-varnames": [
+                "ERROR_MESSAGE_INVALID_REQUEST_PARAMS",
+                "ERROR_MESSAGE_INVALID_INPUT",
+                "ERROR_MESSAGE_USER_NOT_FOUND",
+                "ERROR_MESSAGE_USER_ALREADY_EXISTS",
+                "ERROR_MESSAGE_INTERNAL_SERVER_ERROR"
+            ]
         }
     }
 }`

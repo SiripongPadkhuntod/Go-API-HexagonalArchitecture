@@ -15,6 +15,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 
 	"hexagonalarchitecture/internal/core/port"
+	"hexagonalarchitecture/internal/core/usecase"
 )
 
 const requestIDHeader = "X-Request-ID"
@@ -82,9 +83,10 @@ func RecoveryMiddleware(logger port.Logger) gin.HandlerFunc {
 					"stack", string(debug.Stack()),
 				)...)
 
-				c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-					"error": "internal server error",
-				})
+				c.AbortWithStatusJSON(
+					http.StatusInternalServerError,
+					newErrorResponse(usecase.ERROR_CODE_INTERNAL_SERVER_ERROR, usecase.ERROR_MESSAGE_INTERNAL_SERVER_ERROR),
+				)
 			}
 		}()
 

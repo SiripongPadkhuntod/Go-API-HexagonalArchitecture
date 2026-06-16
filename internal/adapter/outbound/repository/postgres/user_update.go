@@ -5,7 +5,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 
-	entity "hexagonalarchitecture/internal/adapter/repository/postgres/entity"
+	entity "hexagonalarchitecture/internal/adapter/outbound/repository/postgres/entity"
 	"hexagonalarchitecture/internal/core/domain"
 )
 

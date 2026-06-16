@@ -13,18 +13,18 @@ import (
 	"go.uber.org/zap"
 
 	_ "hexagonalarchitecture/docs"
-	clockadapter "hexagonalarchitecture/internal/adapter/clock/system"
-	databasepostgres "hexagonalarchitecture/internal/adapter/database/postgres"
-	httpadapter "hexagonalarchitecture/internal/adapter/handler/http"
-	idadapter "hexagonalarchitecture/internal/adapter/id/uuid"
-	"hexagonalarchitecture/internal/adapter/outboundapi/httpclient"
-	"hexagonalarchitecture/internal/adapter/outboundapi/noop"
-	"hexagonalarchitecture/internal/adapter/repository/postgres"
-	"hexagonalarchitecture/internal/config"
+	httpadapter "hexagonalarchitecture/internal/adapter/inbound/http"
+	clockadapter "hexagonalarchitecture/internal/adapter/outbound/clock/system"
+	"hexagonalarchitecture/internal/adapter/outbound/event/httpclient"
+	"hexagonalarchitecture/internal/adapter/outbound/event/noop"
+	idadapter "hexagonalarchitecture/internal/adapter/outbound/id/uuid"
+	"hexagonalarchitecture/internal/adapter/outbound/repository/postgres"
 	"hexagonalarchitecture/internal/core/port"
 	"hexagonalarchitecture/internal/core/service"
-	observabilitylogger "hexagonalarchitecture/internal/observability/logger"
-	"hexagonalarchitecture/internal/observability/tracer"
+	"hexagonalarchitecture/internal/infrastructure/config"
+	databasepostgres "hexagonalarchitecture/internal/infrastructure/database/postgres"
+	observabilitylogger "hexagonalarchitecture/internal/infrastructure/observability/logger"
+	"hexagonalarchitecture/internal/infrastructure/observability/tracer"
 )
 
 // @title Hexagonal Architecture CRUD API
@@ -69,9 +69,9 @@ func main() {
 
 	userRepo := postgres.NewAppRepository(dbPool) // สร้าง instance ของ user repository
 
-	outboundClient := newOutboundAPIClient(cfg, appLogger)         // สร้าง instance ของ outbound client
-	idGenerator := idadapter.NewGenerator()                        // สร้าง instance ของ id generator
-	clock := clockadapter.NewClock()                               // สร้าง instance ของ clock
+	outboundClient := newOutboundAPIClient(cfg, appLogger)      // สร้าง instance ของ outbound client
+	idGenerator := idadapter.NewGenerator()                     // สร้าง instance ของ id generator
+	clock := clockadapter.NewClock()                            // สร้าง instance ของ clock
 	appService := service.NewAppService(service.AppServiceDeps{ // สร้าง instance ของ user service
 		Repo:      userRepo,       // ส่ง user repository ไปยัง user service
 		Publisher: outboundClient, // ส่ง outbound client ไปยัง user service
@@ -81,7 +81,7 @@ func main() {
 	})
 
 	r := httpadapter.New(appService, appLogger, otel.Tracer("hexagonalarchitecture-api"), metricsRegistry) // สร้าง instance ของ http adapter
-	server := &http.Server{                                                                                 // สร้าง instance ของ http server
+	server := &http.Server{                                                                                // สร้าง instance ของ http server
 		Addr:    cfg.ServerAddress(), // รับค่า addr จาก config
 		Handler: r,                   // รับค่า handler จาก http adapter
 	}
