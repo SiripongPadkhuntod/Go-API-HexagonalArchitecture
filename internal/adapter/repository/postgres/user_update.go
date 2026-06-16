@@ -9,7 +9,7 @@ import (
 	"hexagonalarchitecture/internal/core/domain"
 )
 
-func (r *UserRepository) Update(ctx context.Context, user domain.User) (domain.User, error) {
+func (r *AppRepository) Update(ctx context.Context, user domain.User) (domain.User, error) {
 	const query = `
 		UPDATE ` + entity.UserTable + `
 		SET ` + entity.UserColumnName + ` = $2,
@@ -27,7 +27,7 @@ func (r *UserRepository) Update(ctx context.Context, user domain.User) (domain.U
 		if err == pgx.ErrNoRows {
 			return domain.User{}, domain.ErrUserNotFound
 		}
-		return domain.User{}, err
+		return domain.User{}, mapPostgresError(err)
 	}
 
 	return updatedUserEntity.ToDomain(), nil

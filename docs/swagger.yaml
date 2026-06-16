@@ -1,6 +1,6 @@
 basePath: /
 definitions:
-  hexagonalarchitecture_internal_adapter_handler_http_dto.CreateUserRequest:
+  dto.CreateUserRequest:
     properties:
       email:
         type: string
@@ -10,7 +10,7 @@ definitions:
     - email
     - name
     type: object
-  hexagonalarchitecture_internal_adapter_handler_http_dto.UpdateUserRequest:
+  dto.UpdateUserRequest:
     properties:
       email:
         type: string
@@ -20,7 +20,7 @@ definitions:
     - email
     - name
     type: object
-  hexagonalarchitecture_internal_adapter_handler_http_dto.UserResponse:
+  dto.UserResponse:
     properties:
       created_at:
         type: string
@@ -33,13 +33,13 @@ definitions:
       updated_at:
         type: string
     type: object
-  internal_adapter_handler_http.ErrorResponse:
+  http.ErrorResponse:
     properties:
       error:
         example: 'invalid input: email is invalid'
         type: string
     type: object
-  internal_adapter_handler_http.HealthResponse:
+  http.HealthResponse:
     properties:
       status:
         example: ok
@@ -62,12 +62,12 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/hexagonalarchitecture_internal_adapter_handler_http_dto.UserResponse'
+              $ref: '#/definitions/dto.UserResponse'
             type: array
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/internal_adapter_handler_http.ErrorResponse'
+            $ref: '#/definitions/http.ErrorResponse'
       summary: List users
       tags:
       - Users
@@ -81,22 +81,26 @@ paths:
         name: payload
         required: true
         schema:
-          $ref: '#/definitions/hexagonalarchitecture_internal_adapter_handler_http_dto.CreateUserRequest'
+          $ref: '#/definitions/dto.CreateUserRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/hexagonalarchitecture_internal_adapter_handler_http_dto.UserResponse'
+            $ref: '#/definitions/dto.UserResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/internal_adapter_handler_http.ErrorResponse'
+            $ref: '#/definitions/http.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/http.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/internal_adapter_handler_http.ErrorResponse'
+            $ref: '#/definitions/http.ErrorResponse'
       summary: Create user
       tags:
       - Users
@@ -117,15 +121,15 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/internal_adapter_handler_http.ErrorResponse'
+            $ref: '#/definitions/http.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/internal_adapter_handler_http.ErrorResponse'
+            $ref: '#/definitions/http.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/internal_adapter_handler_http.ErrorResponse'
+            $ref: '#/definitions/http.ErrorResponse'
       summary: Delete user
       tags:
       - Users
@@ -143,19 +147,19 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/hexagonalarchitecture_internal_adapter_handler_http_dto.UserResponse'
+            $ref: '#/definitions/dto.UserResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/internal_adapter_handler_http.ErrorResponse'
+            $ref: '#/definitions/http.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/internal_adapter_handler_http.ErrorResponse'
+            $ref: '#/definitions/http.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/internal_adapter_handler_http.ErrorResponse'
+            $ref: '#/definitions/http.ErrorResponse'
       summary: Get user by ID
       tags:
       - Users
@@ -174,26 +178,30 @@ paths:
         name: payload
         required: true
         schema:
-          $ref: '#/definitions/hexagonalarchitecture_internal_adapter_handler_http_dto.UpdateUserRequest'
+          $ref: '#/definitions/dto.UpdateUserRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/hexagonalarchitecture_internal_adapter_handler_http_dto.UserResponse'
+            $ref: '#/definitions/dto.UserResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/internal_adapter_handler_http.ErrorResponse'
+            $ref: '#/definitions/http.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/internal_adapter_handler_http.ErrorResponse'
+            $ref: '#/definitions/http.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/http.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/internal_adapter_handler_http.ErrorResponse'
+            $ref: '#/definitions/http.ErrorResponse'
       summary: Update user
       tags:
       - Users
@@ -206,7 +214,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/internal_adapter_handler_http.HealthResponse'
+            $ref: '#/definitions/http.HealthResponse'
       summary: Health check
       tags:
       - Health

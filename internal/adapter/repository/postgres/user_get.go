@@ -9,7 +9,7 @@ import (
 	"hexagonalarchitecture/internal/core/domain"
 )
 
-func (r *UserRepository) FindAll(ctx context.Context) ([]domain.User, error) {
+func (r *AppRepository) FindAll(ctx context.Context) ([]domain.User, error) {
 	const query = `
 		SELECT ` + entity.UserColumns + `
 		FROM ` + entity.UserTable + `
@@ -34,7 +34,7 @@ func (r *UserRepository) FindAll(ctx context.Context) ([]domain.User, error) {
 	return users, rows.Err()
 }
 
-func (r *UserRepository) FindByID(ctx context.Context, id string) (domain.User, error) {
+func (r *AppRepository) FindByID(ctx context.Context, id string) (domain.User, error) {
 	const query = `
 		SELECT ` + entity.UserColumns + `
 		FROM ` + entity.UserTable + `

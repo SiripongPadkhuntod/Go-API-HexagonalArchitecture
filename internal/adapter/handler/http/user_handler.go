@@ -9,6 +9,7 @@ import (
 	"hexagonalarchitecture/internal/adapter/handler/http/dto"
 	"hexagonalarchitecture/internal/core/domain"
 	"hexagonalarchitecture/internal/core/port"
+	"hexagonalarchitecture/internal/core/usecase"
 )
 
 type UserHandler struct {
@@ -32,6 +33,7 @@ func NewUserHandler(users port.AppService) *UserHandler {
 // @Param payload body dto.CreateUserRequest true "Create user payload"
 // @Success 201 {object} dto.UserResponse
 // @Failure 400 {object} ErrorResponse
+// @Failure 409 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Router /api/v1/users [post]
 func (h *UserHandler) Create(c *gin.Context) {
@@ -41,7 +43,7 @@ func (h *UserHandler) Create(c *gin.Context) {
 		return
 	}
 
-	user, err := h.users.Create(c.Request.Context(), port.CreateUserInput{
+	user, err := h.users.Create(c.Request.Context(), usecase.CreateUserInput{
 		Name:  request.Name,
 		Email: request.Email,
 	})
@@ -103,6 +105,7 @@ func (h *UserHandler) FindByID(c *gin.Context) {
 // @Success 200 {object} dto.UserResponse
 // @Failure 400 {object} ErrorResponse
 // @Failure 404 {object} ErrorResponse
+// @Failure 409 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Router /api/v1/users/{id} [put]
 func (h *UserHandler) Update(c *gin.Context) {
@@ -112,7 +115,7 @@ func (h *UserHandler) Update(c *gin.Context) {
 		return
 	}
 
-	user, err := h.users.Update(c.Request.Context(), c.Param("id"), port.UpdateUserInput{
+	user, err := h.users.Update(c.Request.Context(), c.Param("id"), usecase.UpdateUserInput{
 		Name:  request.Name,
 		Email: request.Email,
 	})
@@ -150,6 +153,8 @@ func respondError(c *gin.Context, err error) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	case errors.Is(err, domain.ErrUserNotFound):
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+	case errors.Is(err, domain.ErrUserAlreadyExists):
+		c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
 	default:
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 	}

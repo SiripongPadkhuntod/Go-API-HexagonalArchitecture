@@ -4,12 +4,12 @@ import (
 	"hexagonalarchitecture/internal/core/port"
 )
 
-var _ port.UserRepository = (*UserRepository)(nil)
+var _ port.AppRepository = (*AppRepository)(nil)
 
-type UserRepository struct {
+type AppRepository struct {
 	db Executor
 }
 
-func NewUserRepository(db Executor) *UserRepository {
-	return &UserRepository{db: db}
+func NewAppRepository(db Executor) *AppRepository {
+	return &AppRepository{db: db}
 }

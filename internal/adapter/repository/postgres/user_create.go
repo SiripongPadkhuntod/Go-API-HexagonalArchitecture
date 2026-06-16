@@ -9,7 +9,7 @@ import (
 	"hexagonalarchitecture/internal/core/domain"
 )
 
-func (r *UserRepository) Create(ctx context.Context, user domain.User) (domain.User, error) {
+func (r *AppRepository) Create(ctx context.Context, user domain.User) (domain.User, error) {
 	const query = `
 		INSERT INTO ` + entity.UserTable + ` (` + entity.UserColumns + `)
 		VALUES ($1, $2, $3, $4, $5)
@@ -29,7 +29,7 @@ func (r *UserRepository) Create(ctx context.Context, user domain.User) (domain.U
 		if err == pgx.ErrNoRows {
 			return domain.User{}, domain.ErrUserNotFound
 		}
-		return domain.User{}, err
+		return domain.User{}, mapPostgresError(err)
 	}
 
 	return createdUserEntity.ToDomain(), nil

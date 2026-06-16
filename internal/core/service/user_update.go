@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 	"hexagonalarchitecture/internal/core/domain"
-	"hexagonalarchitecture/internal/core/port"
+	"hexagonalarchitecture/internal/core/usecase"
 	"strings"
 )
 
-func (s *appService) Update(ctx context.Context, id string, input port.UpdateUserInput) (domain.User, error) {
+func (s *appService) Update(ctx context.Context, id string, input usecase.UpdateUserInput) (domain.User, error) {
 	if strings.TrimSpace(id) == "" {
 		return domain.User{}, fmt.Errorf(errIDRequired, domain.ErrInvalidInput)
 	}

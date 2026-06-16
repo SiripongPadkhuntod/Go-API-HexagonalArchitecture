@@ -1,11 +1,11 @@
 package port
 
-import (
-	"context"
+// import (
+// 	"context"
 
-	"hexagonalarchitecture/internal/core/domain"
-)
+// 	"hexagonalarchitecture/internal/core/domain"
+// )
 
-type UserEventPublisher interface {
-	PublishUserCreated(ctx context.Context, user domain.User) error
-}
+// type UserEventPublisher interface {
+// 	PublishUserCreated(ctx context.Context, user domain.User) error
+// }

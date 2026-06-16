@@ -9,6 +9,7 @@ import (
 
 	"hexagonalarchitecture/internal/core/domain"
 	"hexagonalarchitecture/internal/core/port"
+	"hexagonalarchitecture/internal/core/usecase"
 )
 
 func TestCreateUsesRepositoryAndOutboundAdapterInterfaces(t *testing.T) {
@@ -19,7 +20,7 @@ func TestCreateUsesRepositoryAndOutboundAdapterInterfaces(t *testing.T) {
 	clock := &mockClock{now: time.Date(2026, 6, 15, 1, 2, 3, 0, time.UTC)}
 	users := newTestUserService(repo, outbound, logger, ids, clock)
 
-	user, err := users.Create(context.Background(), port.CreateUserInput{
+	user, err := users.Create(context.Background(), usecase.CreateUserInput{
 		Name:  "Jane Doe",
 		Email: "Jane@Example.com",
 	})
@@ -55,7 +56,7 @@ func TestCreateInvalidInputDoesNotCallDependencies(t *testing.T) {
 	clock := &mockClock{now: time.Date(2026, 6, 15, 1, 2, 3, 0, time.UTC)}
 	users := newTestUserService(repo, outbound, logger, ids, clock)
 
-	_, err := users.Create(context.Background(), port.CreateUserInput{
+	_, err := users.Create(context.Background(), usecase.CreateUserInput{
 		Name:  "",
 		Email: "invalid-email",
 	})
@@ -82,7 +83,7 @@ func TestCreateReturnsRepositoryErrorWithoutCallingOutbound(t *testing.T) {
 	clock := &mockClock{now: time.Date(2026, 6, 15, 1, 2, 3, 0, time.UTC)}
 	users := newTestUserService(repo, outbound, logger, ids, clock)
 
-	_, err := users.Create(context.Background(), port.CreateUserInput{
+	_, err := users.Create(context.Background(), usecase.CreateUserInput{
 		Name:  "Jane Doe",
 		Email: "jane@example.com",
 	})
@@ -106,7 +107,7 @@ func TestCreateReturnsUserWhenBestEffortPublisherFails(t *testing.T) {
 	clock := &mockClock{now: time.Date(2026, 6, 15, 1, 2, 3, 0, time.UTC)}
 	users := newTestUserService(repo, outbound, logger, ids, clock)
 
-	user, err := users.Create(context.Background(), port.CreateUserInput{
+	user, err := users.Create(context.Background(), usecase.CreateUserInput{
 		Name:  "Jane Doe",
 		Email: "jane@example.com",
 	})
@@ -138,7 +139,7 @@ func TestUpdateUsesRepositoryInterfaceOnly(t *testing.T) {
 	clock := &mockClock{now: updatedAt}
 	users := newTestUserService(repo, outbound, logger, ids, clock)
 
-	updatedUser, err := users.Update(context.Background(), "usr_123", port.UpdateUserInput{
+	updatedUser, err := users.Update(context.Background(), "usr_123", usecase.UpdateUserInput{
 		Name:  "Jane Smith",
 		Email: "Jane.Smith@Example.com",
 	})
@@ -181,7 +182,7 @@ type mockUserRepository struct {
 	users        []domain.User
 }
 
-func newTestUserService(repo port.UserRepository, publisher port.UserEventPublisher, logger port.Logger, ids port.IDGenerator, clock port.Clock) port.AppService {
+func newTestUserService(repo port.AppRepository, publisher port.UserEventPublisher, logger port.Logger, ids port.IDGenerator, clock port.Clock) port.AppService {
 	return NewAppService(AppServiceDeps{
 		Repo:      repo,
 		Publisher: publisher,

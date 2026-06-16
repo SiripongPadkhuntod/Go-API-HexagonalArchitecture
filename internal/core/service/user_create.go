@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 	"hexagonalarchitecture/internal/core/domain"
-	"hexagonalarchitecture/internal/core/port"
+	"hexagonalarchitecture/internal/core/usecase"
 	"strings"
 )
 
-func (s *appService) Create(ctx context.Context, input port.CreateUserInput) (domain.User, error) {
+func (s *appService) Create(ctx context.Context, input usecase.CreateUserInput) (domain.User, error) {
 	if err := validateUser(input.Name, input.Email); err != nil {
 		return domain.User{}, err
 	}
@@ -19,7 +19,7 @@ func (s *appService) Create(ctx context.Context, input port.CreateUserInput) (do
 		return domain.User{}, err
 	}
 
-	if err := s.publisher.PublishUserCreated(ctx, createdUser); err != nil {
+	if err := s.publisher.PublishUserCreated(ctx, createdUser); err != nil { // บรรทัดนี้คือการส่ง event ไปยัง outbound adapter เพื่อนำไปประมวลผลต่อ
 		s.logger.Error("failed to publish user created event", "user_id", createdUser.ID, "error", err)
 	}
 

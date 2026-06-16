@@ -67,7 +67,7 @@ func main() {
 	}
 	defer dbPool.Close() // ปิด database pool เมื่อโปรแกรมทำงานเสร็จสิ้น
 
-	userRepo := postgres.NewUserRepository(dbPool) // สร้าง instance ของ user repository
+	userRepo := postgres.NewAppRepository(dbPool) // สร้าง instance ของ user repository
 
 	outboundClient := newOutboundAPIClient(cfg, appLogger)         // สร้าง instance ของ outbound client
 	idGenerator := idadapter.NewGenerator()                        // สร้าง instance ของ id generator

@@ -11,7 +11,7 @@ var emailPattern = regexp.MustCompile(`^[^\s@]+@[^\s@]+\.[^\s@]+$`)
 const errIDRequired = "%w: id is required"
 
 type appService struct { // userService คือ struct ที่ implement interface port.UserService  (เป็น Implementation)
-	repo      port.UserRepository
+	repo      port.AppRepository
 	publisher port.UserEventPublisher
 	logger    port.Logger
 	ids       port.IDGenerator
@@ -19,7 +19,7 @@ type appService struct { // userService คือ struct ที่ implement int
 }
 
 type AppServiceDeps struct { // UserServiceDeps คือ struct ที่ใช้สำหรับเก็บ dependencies ของ userService (Dependency Injection)
-	Repo      port.UserRepository
+	Repo      port.AppRepository
 	Publisher port.UserEventPublisher
 	Logger    port.Logger
 	IDs       port.IDGenerator
