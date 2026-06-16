@@ -9,7 +9,7 @@ import (
 	"hexagonalarchitecture/internal/core/domain"
 )
 
-func (r *AppRepository) Update(ctx context.Context, user domain.User) (domain.User, error) {
+func (r *UserRepository) Update(ctx context.Context, user domain.User) (domain.User, error) {
 	const query = `
 		UPDATE ` + entity.UserTable + `
 		SET ` + entity.UserColumnName + ` = $2,

@@ -1,13 +1,13 @@
 package http
 
-import "hexagonalarchitecture/internal/core/usecase"
+import "hexagonalarchitecture/internal/core/port"
 
 type ErrorResponse struct {
-	Code    usecase.ErrorCode    `json:"code" example:"9988"`
-	Message usecase.ErrorMessage `json:"message" example:"Invalid request parameters."`
+	Code    port.ErrorCode    `json:"code" example:"9988"`
+	Message port.ErrorMessage `json:"message" example:"Invalid request parameters."`
 }
 
-func newErrorResponse(code usecase.ErrorCode, message usecase.ErrorMessage) ErrorResponse {
+func newErrorResponse(code port.ErrorCode, message port.ErrorMessage) ErrorResponse {
 	return ErrorResponse{
 		Code:    code,
 		Message: message,

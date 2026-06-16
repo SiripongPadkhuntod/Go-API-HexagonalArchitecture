@@ -8,16 +8,13 @@ import (
 
 	"hexagonalarchitecture/internal/adapter/inbound/http/dto"
 	"hexagonalarchitecture/internal/core/port"
-	"hexagonalarchitecture/internal/core/usecase"
 )
 
 type UserHandler struct {
-	users port.AppService
+	users port.UserService
 }
 
-var _ UserHandlerPort = (*UserHandler)(nil)
-
-func NewUserHandler(users port.AppService) UserHandlerPort {
+func NewUserHandler(users port.UserService) *UserHandler {
 	return &UserHandler{users: users}
 }
 
@@ -36,11 +33,11 @@ func NewUserHandler(users port.AppService) UserHandlerPort {
 func (h *UserHandler) Create(c *gin.Context) {
 	var request dto.CreateUserRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.JSON(http.StatusBadRequest, newErrorResponse(usecase.ERROR_CODE_BAD_REQUEST, usecase.ERROR_MESSAGE_INVALID_REQUEST_PARAMS))
+		c.JSON(http.StatusBadRequest, newErrorResponse(port.ErrCodeBadRequest, port.ErrMessageInvalidRequestParams))
 		return
 	}
 
-	user, err := h.users.Create(c.Request.Context(), usecase.CreateUserInput{
+	user, err := h.users.Create(c.Request.Context(), port.CreateUserInput{
 		Name:  request.Name,
 		Email: request.Email,
 	})
@@ -108,11 +105,11 @@ func (h *UserHandler) FindByID(c *gin.Context) {
 func (h *UserHandler) Update(c *gin.Context) {
 	var request dto.UpdateUserRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.JSON(http.StatusBadRequest, newErrorResponse(usecase.ERROR_CODE_BAD_REQUEST, usecase.ERROR_MESSAGE_INVALID_REQUEST_PARAMS))
+		c.JSON(http.StatusBadRequest, newErrorResponse(port.ErrCodeBadRequest, port.ErrMessageInvalidRequestParams))
 		return
 	}
 
-	user, err := h.users.Update(c.Request.Context(), c.Param("id"), usecase.UpdateUserInput{
+	user, err := h.users.Update(c.Request.Context(), c.Param("id"), port.UpdateUserInput{
 		Name:  request.Name,
 		Email: request.Email,
 	})
@@ -145,7 +142,7 @@ func (h *UserHandler) Delete(c *gin.Context) {
 }
 
 func respondError(c *gin.Context, err error) {
-	var appErr *usecase.AppError
+	var appErr *port.AppError
 	if errors.As(err, &appErr) {
 		c.JSON(httpStatusFromAppError(appErr), newErrorResponse(appErr.Code, appErr.Message))
 		return
@@ -153,19 +150,19 @@ func respondError(c *gin.Context, err error) {
 
 	c.JSON(
 		http.StatusInternalServerError,
-		newErrorResponse(usecase.ERROR_CODE_INTERNAL_SERVER_ERROR, usecase.ERROR_MESSAGE_INTERNAL_SERVER_ERROR),
+		newErrorResponse(port.ErrCodeInternalServer, port.ErrMessageInternalServer),
 	)
 }
 
-func httpStatusFromAppError(err *usecase.AppError) int {
-	if err.Kind == usecase.ErrorKindTechnical {
+func httpStatusFromAppError(err *port.AppError) int {
+	if err.Kind == port.ErrorKindTechnical {
 		return http.StatusInternalServerError
 	}
 
 	switch err.Code {
-	case usecase.ERROR_CODE_USER_NOT_FOUND:
+	case port.ErrCodeUserNotFound:
 		return http.StatusNotFound
-	case usecase.ERROR_CODE_USER_ALREADY_EXISTS:
+	case port.ErrCodeUserAlreadyExists:
 		return http.StatusConflict
 	default:
 		return http.StatusBadRequest

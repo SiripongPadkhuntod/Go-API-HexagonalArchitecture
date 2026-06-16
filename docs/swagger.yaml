@@ -37,11 +37,11 @@ definitions:
     properties:
       code:
         allOf:
-        - $ref: '#/definitions/usecase.ErrorCode'
+        - $ref: '#/definitions/port.ErrorCode'
         example: "9988"
       message:
         allOf:
-        - $ref: '#/definitions/usecase.ErrorMessage'
+        - $ref: '#/definitions/port.ErrorMessage'
         example: Invalid request parameters.
     type: object
   http.HealthResponse:
@@ -50,7 +50,7 @@ definitions:
         example: ok
         type: string
     type: object
-  usecase.ErrorCode:
+  port.ErrorCode:
     enum:
     - "9988"
     - "9987"
@@ -59,12 +59,12 @@ definitions:
     - "5000"
     type: string
     x-enum-varnames:
-    - ERROR_CODE_BAD_REQUEST
-    - ERROR_CODE_INVALID_INPUT
-    - ERROR_CODE_USER_NOT_FOUND
-    - ERROR_CODE_USER_ALREADY_EXISTS
-    - ERROR_CODE_INTERNAL_SERVER_ERROR
-  usecase.ErrorMessage:
+    - ErrCodeBadRequest
+    - ErrCodeInvalidInput
+    - ErrCodeUserNotFound
+    - ErrCodeUserAlreadyExists
+    - ErrCodeInternalServer
+  port.ErrorMessage:
     enum:
     - Invalid request parameters.
     - Invalid input
@@ -73,11 +73,11 @@ definitions:
     - Internal Server Error
     type: string
     x-enum-varnames:
-    - ERROR_MESSAGE_INVALID_REQUEST_PARAMS
-    - ERROR_MESSAGE_INVALID_INPUT
-    - ERROR_MESSAGE_USER_NOT_FOUND
-    - ERROR_MESSAGE_USER_ALREADY_EXISTS
-    - ERROR_MESSAGE_INTERNAL_SERVER_ERROR
+    - ErrMessageInvalidRequestParams
+    - ErrMessageInvalidInput
+    - ErrMessageUserNotFound
+    - ErrMessageUserAlreadyExists
+    - ErrMessageInternalServer
 host: localhost:8080
 info:
   contact: {}

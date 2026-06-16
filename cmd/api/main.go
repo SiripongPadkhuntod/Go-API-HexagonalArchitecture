@@ -67,12 +67,12 @@ func main() {
 	}
 	defer dbPool.Close() // ปิด database pool เมื่อโปรแกรมทำงานเสร็จสิ้น
 
-	userRepo := postgres.NewAppRepository(dbPool) // สร้าง instance ของ user repository
+	userRepo := postgres.NewUserRepository(dbPool) // สร้าง instance ของ user repository
 
-	outboundClient := newOutboundAPIClient(cfg, appLogger)      // สร้าง instance ของ outbound client
-	idGenerator := idadapter.NewGenerator()                     // สร้าง instance ของ id generator
-	clock := clockadapter.NewClock()                            // สร้าง instance ของ clock
-	appService := service.NewAppService(service.AppServiceDeps{ // สร้าง instance ของ user service
+	outboundClient := newOutboundAPIClient(cfg, appLogger)         // สร้าง instance ของ outbound client
+	idGenerator := idadapter.NewGenerator()                        // สร้าง instance ของ id generator
+	clock := clockadapter.NewClock()                               // สร้าง instance ของ clock
+	userService := service.NewUserService(service.UserServiceDeps{ // สร้าง instance ของ user service
 		Repo:      userRepo,       // ส่ง user repository ไปยัง user service
 		Publisher: outboundClient, // ส่ง outbound client ไปยัง user service
 		Logger:    appLogger,      // ส่ง logger ไปยัง user service
@@ -80,8 +80,8 @@ func main() {
 		Clock:     clock,          // ส่ง clock ไปยัง user service
 	})
 
-	r := httpadapter.New(appService, appLogger, otel.Tracer("hexagonalarchitecture-api"), metricsRegistry) // สร้าง instance ของ http adapter
-	server := &http.Server{                                                                                // สร้าง instance ของ http server
+	r := httpadapter.New(userService, appLogger, otel.Tracer("hexagonalarchitecture-api"), metricsRegistry) // สร้าง instance ของ http adapter
+	server := &http.Server{                                                                                 // สร้าง instance ของ http server
 		Addr:    cfg.ServerAddress(), // รับค่า addr จาก config
 		Handler: r,                   // รับค่า handler จาก http adapter
 	}

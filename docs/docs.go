@@ -324,7 +324,7 @@ const docTemplate = `{
                 "code": {
                     "allOf": [
                         {
-                            "$ref": "#/definitions/usecase.ErrorCode"
+                            "$ref": "#/definitions/port.ErrorCode"
                         }
                     ],
                     "example": "9988"
@@ -332,7 +332,7 @@ const docTemplate = `{
                 "message": {
                     "allOf": [
                         {
-                            "$ref": "#/definitions/usecase.ErrorMessage"
+                            "$ref": "#/definitions/port.ErrorMessage"
                         }
                     ],
                     "example": "Invalid request parameters."
@@ -348,7 +348,7 @@ const docTemplate = `{
                 }
             }
         },
-        "usecase.ErrorCode": {
+        "port.ErrorCode": {
             "type": "string",
             "enum": [
                 "9988",
@@ -358,14 +358,14 @@ const docTemplate = `{
                 "5000"
             ],
             "x-enum-varnames": [
-                "ERROR_CODE_BAD_REQUEST",
-                "ERROR_CODE_INVALID_INPUT",
-                "ERROR_CODE_USER_NOT_FOUND",
-                "ERROR_CODE_USER_ALREADY_EXISTS",
-                "ERROR_CODE_INTERNAL_SERVER_ERROR"
+                "ErrCodeBadRequest",
+                "ErrCodeInvalidInput",
+                "ErrCodeUserNotFound",
+                "ErrCodeUserAlreadyExists",
+                "ErrCodeInternalServer"
             ]
         },
-        "usecase.ErrorMessage": {
+        "port.ErrorMessage": {
             "type": "string",
             "enum": [
                 "Invalid request parameters.",
@@ -375,11 +375,11 @@ const docTemplate = `{
                 "Internal Server Error"
             ],
             "x-enum-varnames": [
-                "ERROR_MESSAGE_INVALID_REQUEST_PARAMS",
-                "ERROR_MESSAGE_INVALID_INPUT",
-                "ERROR_MESSAGE_USER_NOT_FOUND",
-                "ERROR_MESSAGE_USER_ALREADY_EXISTS",
-                "ERROR_MESSAGE_INTERNAL_SERVER_ERROR"
+                "ErrMessageInvalidRequestParams",
+                "ErrMessageInvalidInput",
+                "ErrMessageUserNotFound",
+                "ErrMessageUserAlreadyExists",
+                "ErrMessageInternalServer"
             ]
         }
     }

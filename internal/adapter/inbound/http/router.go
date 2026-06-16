@@ -13,7 +13,7 @@ import (
 	"hexagonalarchitecture/internal/core/port"
 )
 
-func New(userService port.AppService, logger port.Logger, tracer trace.Tracer, metricsRegistry *prometheus.Registry) stdhttp.Handler {
+func New(userService port.UserService, logger port.Logger, tracer trace.Tracer, metricsRegistry *prometheus.Registry) stdhttp.Handler {
 	r := gin.New()
 	r.Use(
 		RecoveryMiddleware(logger),

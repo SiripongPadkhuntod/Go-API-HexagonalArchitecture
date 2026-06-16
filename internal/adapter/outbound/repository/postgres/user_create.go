@@ -9,7 +9,7 @@ import (
 	"hexagonalarchitecture/internal/core/domain"
 )
 
-func (r *AppRepository) Create(ctx context.Context, user domain.User) (domain.User, error) {
+func (r *UserRepository) Create(ctx context.Context, user domain.User) (domain.User, error) {
 	const query = `
 		INSERT INTO ` + entity.UserTable + ` (` + entity.UserColumns + `)
 		VALUES ($1, $2, $3, $4, $5)

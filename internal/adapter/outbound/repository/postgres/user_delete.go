@@ -9,7 +9,7 @@ import (
 	"hexagonalarchitecture/internal/core/domain"
 )
 
-func (r *AppRepository) Delete(ctx context.Context, id string) error {
+func (r *UserRepository) Delete(ctx context.Context, id string) error {
 	const query = `
 		DELETE FROM ` + entity.UserTable + `
 		WHERE ` + entity.UserColumnID + ` = $1
