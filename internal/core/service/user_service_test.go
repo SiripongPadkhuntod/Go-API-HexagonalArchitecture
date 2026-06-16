@@ -5,16 +5,21 @@ import (
 	"errors"
 	"strings"
 	"testing"
+	"time"
 
 	"hexagonalarchitecture/internal/core/domain"
+	"hexagonalarchitecture/internal/core/port"
 )
 
 func TestCreateUsesRepositoryAndOutboundAdapterInterfaces(t *testing.T) {
 	repo := &mockUserRepository{}
 	outbound := &mockUserEventPublisher{}
-	users := NewUserService(repo, outbound)
+	logger := &mockLogger{}
+	ids := &mockIDGenerator{id: "usr_test"}
+	clock := &mockClock{now: time.Date(2026, 6, 15, 1, 2, 3, 0, time.UTC)}
+	users := newTestUserService(repo, outbound, logger, ids, clock)
 
-	user, err := users.Create(context.Background(), CreateUserInput{
+	user, err := users.Create(context.Background(), port.CreateUserInput{
 		Name:  "Jane Doe",
 		Email: "Jane@Example.com",
 	})
@@ -31,6 +36,12 @@ func TestCreateUsesRepositoryAndOutboundAdapterInterfaces(t *testing.T) {
 	if user.Email != "jane@example.com" {
 		t.Fatalf("expected normalized email, got %s", user.Email)
 	}
+	if user.ID != "usr_test" {
+		t.Fatalf("expected injected id, got %s", user.ID)
+	}
+	if !user.CreatedAt.Equal(clock.now) || !user.UpdatedAt.Equal(clock.now) {
+		t.Fatalf("expected injected time, got created=%s updated=%s", user.CreatedAt, user.UpdatedAt)
+	}
 	if outbound.publishedUser.ID != user.ID || outbound.publishedUser.Name != user.Name || outbound.publishedUser.Email != user.Email {
 		t.Fatalf("published user does not match created user: %+v", outbound.publishedUser)
 	}
@@ -39,9 +50,12 @@ func TestCreateUsesRepositoryAndOutboundAdapterInterfaces(t *testing.T) {
 func TestCreateInvalidInputDoesNotCallDependencies(t *testing.T) {
 	repo := &mockUserRepository{}
 	outbound := &mockUserEventPublisher{}
-	users := NewUserService(repo, outbound)
+	logger := &mockLogger{}
+	ids := &mockIDGenerator{id: "usr_test"}
+	clock := &mockClock{now: time.Date(2026, 6, 15, 1, 2, 3, 0, time.UTC)}
+	users := newTestUserService(repo, outbound, logger, ids, clock)
 
-	_, err := users.Create(context.Background(), CreateUserInput{
+	_, err := users.Create(context.Background(), port.CreateUserInput{
 		Name:  "",
 		Email: "invalid-email",
 	})
@@ -63,9 +77,12 @@ func TestCreateReturnsRepositoryErrorWithoutCallingOutbound(t *testing.T) {
 	repoErr := errors.New("repository failed")
 	repo := &mockUserRepository{createErr: repoErr}
 	outbound := &mockUserEventPublisher{}
-	users := NewUserService(repo, outbound)
+	logger := &mockLogger{}
+	ids := &mockIDGenerator{id: "usr_test"}
+	clock := &mockClock{now: time.Date(2026, 6, 15, 1, 2, 3, 0, time.UTC)}
+	users := newTestUserService(repo, outbound, logger, ids, clock)
 
-	_, err := users.Create(context.Background(), CreateUserInput{
+	_, err := users.Create(context.Background(), port.CreateUserInput{
 		Name:  "Jane Doe",
 		Email: "jane@example.com",
 	})
@@ -84,9 +101,12 @@ func TestCreateReturnsUserWhenBestEffortPublisherFails(t *testing.T) {
 	publisherErr := errors.New("publisher failed")
 	repo := &mockUserRepository{}
 	outbound := &mockUserEventPublisher{err: publisherErr}
-	users := NewUserService(repo, outbound)
+	logger := &mockLogger{}
+	ids := &mockIDGenerator{id: "usr_test"}
+	clock := &mockClock{now: time.Date(2026, 6, 15, 1, 2, 3, 0, time.UTC)}
+	users := newTestUserService(repo, outbound, logger, ids, clock)
 
-	user, err := users.Create(context.Background(), CreateUserInput{
+	user, err := users.Create(context.Background(), port.CreateUserInput{
 		Name:  "Jane Doe",
 		Email: "jane@example.com",
 	})
@@ -102,15 +122,23 @@ func TestCreateReturnsUserWhenBestEffortPublisherFails(t *testing.T) {
 	if !outbound.publishCalled {
 		t.Fatal("expected user event publisher to be called")
 	}
+	if !logger.errorCalled {
+		t.Fatal("expected publisher error to be logged")
+	}
 }
 
 func TestUpdateUsesRepositoryInterfaceOnly(t *testing.T) {
-	existingUser := domain.NewUser("usr_123", "Jane Doe", "jane@example.com")
+	createdAt := time.Date(2026, 6, 15, 1, 2, 3, 0, time.UTC)
+	updatedAt := createdAt.Add(time.Hour)
+	existingUser := domain.NewUser("usr_123", "Jane Doe", "jane@example.com", createdAt)
 	repo := &mockUserRepository{findByIDUser: existingUser}
 	outbound := &mockUserEventPublisher{}
-	users := NewUserService(repo, outbound)
+	logger := &mockLogger{}
+	ids := &mockIDGenerator{id: "unused"}
+	clock := &mockClock{now: updatedAt}
+	users := newTestUserService(repo, outbound, logger, ids, clock)
 
-	updatedUser, err := users.Update(context.Background(), "usr_123", UpdateUserInput{
+	updatedUser, err := users.Update(context.Background(), "usr_123", port.UpdateUserInput{
 		Name:  "Jane Smith",
 		Email: "Jane.Smith@Example.com",
 	})
@@ -133,6 +161,12 @@ func TestUpdateUsesRepositoryInterfaceOnly(t *testing.T) {
 	if updatedUser.Email != "jane.smith@example.com" {
 		t.Fatalf("expected normalized email, got %s", updatedUser.Email)
 	}
+	if !updatedUser.CreatedAt.Equal(createdAt) {
+		t.Fatalf("expected created time to remain unchanged, got %s", updatedUser.CreatedAt)
+	}
+	if !updatedUser.UpdatedAt.Equal(updatedAt) {
+		t.Fatalf("expected injected updated time, got %s", updatedUser.UpdatedAt)
+	}
 }
 
 type mockUserRepository struct {
@@ -145,6 +179,16 @@ type mockUserRepository struct {
 	createErr    error
 	findByIDUser domain.User
 	users        []domain.User
+}
+
+func newTestUserService(repo port.UserRepository, publisher port.UserEventPublisher, logger port.Logger, ids port.IDGenerator, clock port.Clock) port.AppService {
+	return NewAppService(AppServiceDeps{
+		Repo:      repo,
+		Publisher: publisher,
+		Logger:    logger,
+		IDs:       ids,
+		Clock:     clock,
+	})
 }
 
 func (r *mockUserRepository) Create(ctx context.Context, user domain.User) (domain.User, error) {
@@ -190,4 +234,38 @@ func (p *mockUserEventPublisher) PublishUserCreated(ctx context.Context, user do
 	p.publishCalled = true
 	p.publishedUser = user
 	return p.err
+}
+
+type mockLogger struct {
+	infoCalled  bool
+	errorCalled bool
+	fatalCalled bool
+}
+
+func (l *mockLogger) Info(msg string, args ...any) {
+	l.infoCalled = true
+}
+
+func (l *mockLogger) Error(msg string, args ...any) {
+	l.errorCalled = true
+}
+
+func (l *mockLogger) Fatal(msg string, args ...any) {
+	l.fatalCalled = true
+}
+
+type mockIDGenerator struct {
+	id string
+}
+
+func (g *mockIDGenerator) NewID() string {
+	return g.id
+}
+
+type mockClock struct {
+	now time.Time
+}
+
+func (c *mockClock) Now() time.Time {
+	return c.now
 }

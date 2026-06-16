@@ -1,18 +1,19 @@
 package http
 
 import (
+	stdhttp "net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"go.opentelemetry.io/otel/trace"
-	"go.uber.org/zap"
 
-	"hexagonalarchitecture/internal/core/service"
+	"hexagonalarchitecture/internal/core/port"
 )
 
-func New(userService service.UserService, logger *zap.Logger, tracer trace.Tracer, metricsRegistry *prometheus.Registry) *gin.Engine {
+func New(userService port.AppService, logger port.Logger, tracer trace.Tracer, metricsRegistry *prometheus.Registry) stdhttp.Handler {
 	r := gin.New()
 	r.Use(
 		RecoveryMiddleware(logger),

@@ -13,14 +13,13 @@ import (
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
-	"go.uber.org/zap"
 
-	observabilitylogger "hexagonalarchitecture/internal/observability/logger"
+	"hexagonalarchitecture/internal/core/port"
 )
 
 const requestIDHeader = "X-Request-ID"
 
-func RequestContextMiddleware(baseLogger *zap.Logger, tracer trace.Tracer) gin.HandlerFunc {
+func RequestContextMiddleware(logger port.Logger, tracer trace.Tracer) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
 		requestID := c.GetHeader(requestIDHeader)
@@ -49,15 +48,9 @@ func RequestContextMiddleware(baseLogger *zap.Logger, tracer trace.Tracer) gin.H
 			attribute.String("request_id", requestID),
 		)
 
-		requestLogger := loggerWithTrace(baseLogger, ctx).With(
-			zap.String("request_id", requestID),
-			zap.String("method", c.Request.Method),
-			zap.String("path", c.Request.URL.Path),
-			zap.String("route", route),
-		)
-
-		c.Request = c.Request.WithContext(observabilitylogger.WithContext(ctx, requestLogger))
-		requestLogger.Info("request started")
+		logArgs := requestLogArgs(ctx, requestID, c.Request.Method, c.Request.URL.Path, route)
+		c.Request = c.Request.WithContext(ctx)
+		logger.Info("request started", logArgs...)
 
 		c.Next()
 
@@ -67,26 +60,27 @@ func RequestContextMiddleware(baseLogger *zap.Logger, tracer trace.Tracer) gin.H
 			span.SetStatus(codes.Error, http.StatusText(statusCode))
 		}
 
-		requestLogger.Info("request completed",
-			zap.Int("status_code", statusCode),
-			zap.Duration("latency", time.Since(start)),
-		)
+		logger.Info("request completed", append(logArgs,
+			"status_code", statusCode,
+			"latency", time.Since(start),
+		)...)
 	}
 }
 
-func RecoveryMiddleware(baseLogger *zap.Logger) gin.HandlerFunc {
+func RecoveryMiddleware(logger port.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		defer func() {
 			if recovered := recover(); recovered != nil {
-				requestLogger := observabilitylogger.FromContext(c.Request.Context())
-				if requestLogger == zap.L() {
-					requestLogger = baseLogger
-				}
-
-				requestLogger.Error("panic recovered",
-					zap.Any("panic", recovered),
-					zap.ByteString("stack", debug.Stack()),
-				)
+				logger.Error("panic recovered", append(requestLogArgs(
+					c.Request.Context(),
+					c.GetHeader(requestIDHeader),
+					c.Request.Method,
+					c.Request.URL.Path,
+					c.FullPath(),
+				),
+					"panic", recovered,
+					"stack", string(debug.Stack()),
+				)...)
 
 				c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 					"error": "internal server error",
@@ -98,14 +92,21 @@ func RecoveryMiddleware(baseLogger *zap.Logger) gin.HandlerFunc {
 	}
 }
 
-func loggerWithTrace(baseLogger *zap.Logger, ctx context.Context) *zap.Logger {
-	spanContext := trace.SpanContextFromContext(ctx)
-	if !spanContext.IsValid() {
-		return baseLogger
+func requestLogArgs(ctx context.Context, requestID, method, path, route string) []any {
+	args := []any{
+		"request_id", requestID,
+		"method", method,
+		"path", path,
+		"route", route,
 	}
 
-	return baseLogger.With(
-		zap.String("trace_id", spanContext.TraceID().String()),
-		zap.String("span_id", spanContext.SpanID().String()),
+	spanContext := trace.SpanContextFromContext(ctx)
+	if !spanContext.IsValid() {
+		return args
+	}
+
+	return append(args,
+		"trace_id", spanContext.TraceID().String(),
+		"span_id", spanContext.SpanID().String(),
 	)
 }

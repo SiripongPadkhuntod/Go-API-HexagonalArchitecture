@@ -6,19 +6,20 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"hexagonalarchitecture/internal/adapter/handler/http/dto"
 	"hexagonalarchitecture/internal/core/domain"
-	"hexagonalarchitecture/internal/core/service"
+	"hexagonalarchitecture/internal/core/port"
 )
 
 type UserHandler struct {
-	users service.UserService
+	users port.AppService
 }
 
 type ErrorResponse struct {
 	Error string `json:"error" example:"invalid input: email is invalid"`
 }
 
-func NewUserHandler(users service.UserService) *UserHandler {
+func NewUserHandler(users port.AppService) *UserHandler {
 	return &UserHandler{users: users}
 }
 
@@ -28,25 +29,28 @@ func NewUserHandler(users service.UserService) *UserHandler {
 // @Tags Users
 // @Accept json
 // @Produce json
-// @Param payload body service.CreateUserInput true "Create user payload"
-// @Success 201 {object} domain.User
+// @Param payload body dto.CreateUserRequest true "Create user payload"
+// @Success 201 {object} dto.UserResponse
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Router /api/v1/users [post]
 func (h *UserHandler) Create(c *gin.Context) {
-	var input service.CreateUserInput
-	if err := c.ShouldBindJSON(&input); err != nil {
+	var request dto.CreateUserRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	user, err := h.users.Create(c.Request.Context(), input)
+	user, err := h.users.Create(c.Request.Context(), port.CreateUserInput{
+		Name:  request.Name,
+		Email: request.Email,
+	})
 	if err != nil {
 		respondError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusCreated, user)
+	c.JSON(http.StatusCreated, dto.ToUserResponse(user))
 }
 
 // FindAllUsers godoc
@@ -54,7 +58,7 @@ func (h *UserHandler) Create(c *gin.Context) {
 // @Description Get all users.
 // @Tags Users
 // @Produce json
-// @Success 200 {array} domain.User
+// @Success 200 {array} dto.UserResponse
 // @Failure 500 {object} ErrorResponse
 // @Router /api/v1/users [get]
 func (h *UserHandler) FindAll(c *gin.Context) {
@@ -64,7 +68,7 @@ func (h *UserHandler) FindAll(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, users)
+	c.JSON(http.StatusOK, dto.ToUserResponses(users))
 }
 
 // FindUserByID godoc
@@ -73,7 +77,7 @@ func (h *UserHandler) FindAll(c *gin.Context) {
 // @Tags Users
 // @Produce json
 // @Param id path string true "User ID"
-// @Success 200 {object} domain.User
+// @Success 200 {object} dto.UserResponse
 // @Failure 400 {object} ErrorResponse
 // @Failure 404 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
@@ -85,7 +89,7 @@ func (h *UserHandler) FindByID(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, user)
+	c.JSON(http.StatusOK, dto.ToUserResponse(user))
 }
 
 // UpdateUser godoc
@@ -95,26 +99,29 @@ func (h *UserHandler) FindByID(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path string true "User ID"
-// @Param payload body service.UpdateUserInput true "Update user payload"
-// @Success 200 {object} domain.User
+// @Param payload body dto.UpdateUserRequest true "Update user payload"
+// @Success 200 {object} dto.UserResponse
 // @Failure 400 {object} ErrorResponse
 // @Failure 404 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Router /api/v1/users/{id} [put]
 func (h *UserHandler) Update(c *gin.Context) {
-	var input service.UpdateUserInput
-	if err := c.ShouldBindJSON(&input); err != nil {
+	var request dto.UpdateUserRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	user, err := h.users.Update(c.Request.Context(), c.Param("id"), input)
+	user, err := h.users.Update(c.Request.Context(), c.Param("id"), port.UpdateUserInput{
+		Name:  request.Name,
+		Email: request.Email,
+	})
 	if err != nil {
 		respondError(c, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, user)
+	c.JSON(http.StatusOK, dto.ToUserResponse(user))
 }
 
 // DeleteUser godoc

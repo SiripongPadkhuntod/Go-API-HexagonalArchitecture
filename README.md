@@ -9,7 +9,10 @@ cmd/api                         application entrypoint
 internal/core/domain             business entities
 internal/core/port               ports / interfaces
 internal/core/service            use cases / business logic
+internal/adapter/clock           clock adapter
+internal/adapter/id              ID generator adapter
 internal/adapter/handler/http    inbound HTTP adapter with Gin
+internal/adapter/handler/http/dto HTTP request/response DTOs
 internal/adapter/database        database pool adapters
 internal/adapter/repository      outbound database adapters
 internal/adapter/outboundapi     outbound HTTP API adapter with circuit breaker
@@ -95,6 +98,7 @@ load config
 init logger and tracer
 init metrics registry
 init PostgreSQL pool
+init ID generator and clock
 inject pool into Postgres repository
 inject repository and outbound adapter into usecase
 inject usecase into HTTP handler/router

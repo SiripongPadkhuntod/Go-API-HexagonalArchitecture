@@ -31,7 +31,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/hexagonalarchitecture_internal_core_domain.User"
+                                "$ref": "#/definitions/hexagonalarchitecture_internal_adapter_handler_http_dto.UserResponse"
                             }
                         }
                     },
@@ -62,7 +62,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/hexagonalarchitecture_internal_core_service.CreateUserInput"
+                            "$ref": "#/definitions/hexagonalarchitecture_internal_adapter_handler_http_dto.CreateUserRequest"
                         }
                     }
                 ],
@@ -70,7 +70,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/hexagonalarchitecture_internal_core_domain.User"
+                            "$ref": "#/definitions/hexagonalarchitecture_internal_adapter_handler_http_dto.UserResponse"
                         }
                     },
                     "400": {
@@ -111,7 +111,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/hexagonalarchitecture_internal_core_domain.User"
+                            "$ref": "#/definitions/hexagonalarchitecture_internal_adapter_handler_http_dto.UserResponse"
                         }
                     },
                     "400": {
@@ -160,7 +160,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/hexagonalarchitecture_internal_core_service.UpdateUserInput"
+                            "$ref": "#/definitions/hexagonalarchitecture_internal_adapter_handler_http_dto.UpdateUserRequest"
                         }
                     }
                 ],
@@ -168,7 +168,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/hexagonalarchitecture_internal_core_domain.User"
+                            "$ref": "#/definitions/hexagonalarchitecture_internal_adapter_handler_http_dto.UserResponse"
                         }
                     },
                     "400": {
@@ -256,7 +256,37 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "hexagonalarchitecture_internal_core_domain.User": {
+        "hexagonalarchitecture_internal_adapter_handler_http_dto.CreateUserRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "name"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "hexagonalarchitecture_internal_adapter_handler_http_dto.UpdateUserRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "name"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "hexagonalarchitecture_internal_adapter_handler_http_dto.UserResponse": {
             "type": "object",
             "properties": {
                 "created_at": {
@@ -272,36 +302,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "updated_at": {
-                    "type": "string"
-                }
-            }
-        },
-        "hexagonalarchitecture_internal_core_service.CreateUserInput": {
-            "type": "object",
-            "required": [
-                "email",
-                "name"
-            ],
-            "properties": {
-                "email": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "hexagonalarchitecture_internal_core_service.UpdateUserInput": {
-            "type": "object",
-            "required": [
-                "email",
-                "name"
-            ],
-            "properties": {
-                "email": {
-                    "type": "string"
-                },
-                "name": {
                     "type": "string"
                 }
             }

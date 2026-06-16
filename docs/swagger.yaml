@@ -1,6 +1,26 @@
 basePath: /
 definitions:
-  hexagonalarchitecture_internal_core_domain.User:
+  hexagonalarchitecture_internal_adapter_handler_http_dto.CreateUserRequest:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+    required:
+    - email
+    - name
+    type: object
+  hexagonalarchitecture_internal_adapter_handler_http_dto.UpdateUserRequest:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+    required:
+    - email
+    - name
+    type: object
+  hexagonalarchitecture_internal_adapter_handler_http_dto.UserResponse:
     properties:
       created_at:
         type: string
@@ -12,26 +32,6 @@ definitions:
         type: string
       updated_at:
         type: string
-    type: object
-  hexagonalarchitecture_internal_core_service.CreateUserInput:
-    properties:
-      email:
-        type: string
-      name:
-        type: string
-    required:
-    - email
-    - name
-    type: object
-  hexagonalarchitecture_internal_core_service.UpdateUserInput:
-    properties:
-      email:
-        type: string
-      name:
-        type: string
-    required:
-    - email
-    - name
     type: object
   internal_adapter_handler_http.ErrorResponse:
     properties:
@@ -62,7 +62,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/hexagonalarchitecture_internal_core_domain.User'
+              $ref: '#/definitions/hexagonalarchitecture_internal_adapter_handler_http_dto.UserResponse'
             type: array
         "500":
           description: Internal Server Error
@@ -81,14 +81,14 @@ paths:
         name: payload
         required: true
         schema:
-          $ref: '#/definitions/hexagonalarchitecture_internal_core_service.CreateUserInput'
+          $ref: '#/definitions/hexagonalarchitecture_internal_adapter_handler_http_dto.CreateUserRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/hexagonalarchitecture_internal_core_domain.User'
+            $ref: '#/definitions/hexagonalarchitecture_internal_adapter_handler_http_dto.UserResponse'
         "400":
           description: Bad Request
           schema:
@@ -143,7 +143,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/hexagonalarchitecture_internal_core_domain.User'
+            $ref: '#/definitions/hexagonalarchitecture_internal_adapter_handler_http_dto.UserResponse'
         "400":
           description: Bad Request
           schema:
@@ -174,14 +174,14 @@ paths:
         name: payload
         required: true
         schema:
-          $ref: '#/definitions/hexagonalarchitecture_internal_core_service.UpdateUserInput'
+          $ref: '#/definitions/hexagonalarchitecture_internal_adapter_handler_http_dto.UpdateUserRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/hexagonalarchitecture_internal_core_domain.User'
+            $ref: '#/definitions/hexagonalarchitecture_internal_adapter_handler_http_dto.UserResponse'
         "400":
           description: Bad Request
           schema:

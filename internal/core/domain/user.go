@@ -7,15 +7,14 @@ import (
 
 // User is the core business entity.
 type User struct {
-	ID        string    `json:"id"`
-	Name      string    `json:"name"`
-	Email     string    `json:"email"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID        string
+	Name      string
+	Email     string
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
-func NewUser(id, name, email string) User {
-	now := time.Now().UTC()
+func NewUser(id, name, email string, now time.Time) User {
 	return User{
 		ID:        id,
 		Name:      strings.TrimSpace(name),
@@ -25,8 +24,8 @@ func NewUser(id, name, email string) User {
 	}
 }
 
-func (u *User) Update(name, email string) {
+func (u *User) Update(name, email string, now time.Time) {
 	u.Name = strings.TrimSpace(name)
 	u.Email = strings.TrimSpace(strings.ToLower(email))
-	u.UpdatedAt = time.Now().UTC()
+	u.UpdatedAt = now
 }

@@ -7,7 +7,10 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"hexagonalarchitecture/internal/core/domain"
+	"hexagonalarchitecture/internal/core/port"
 )
+
+var _ port.UserRepository = (*UserRepository)(nil)
 
 type UserRepository struct {
 	pool *pgxpool.Pool
