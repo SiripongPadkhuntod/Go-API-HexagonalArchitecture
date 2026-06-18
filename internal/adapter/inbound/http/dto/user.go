@@ -12,8 +12,17 @@ type CreateUserRequest struct {
 }
 
 type UpdateUserRequest struct {
+	ID    string `uri:"id" binding:"required"`
 	Name  string `json:"name" binding:"required"`
 	Email string `json:"email" binding:"required"`
+}
+
+type GetUserRequest struct {
+	ID string `uri:"id" binding:"required"`
+}
+
+type DeleteUserRequest struct {
+	ID string `uri:"id" binding:"required"`
 }
 
 type UserResponse struct {

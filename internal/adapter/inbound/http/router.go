@@ -13,7 +13,7 @@ import (
 	"hexagonalarchitecture/internal/core/port"
 )
 
-func New(userService port.UserService, logger port.Logger, tracer trace.Tracer, metricsRegistry *prometheus.Registry) stdhttp.Handler {
+func New(userService port.UserService, storage port.StoragePort, logger port.Logger, tracer trace.Tracer, metricsRegistry *prometheus.Registry) stdhttp.Handler {
 	r := gin.New()
 	r.Use(
 		RecoveryMiddleware(logger),
@@ -26,16 +26,27 @@ func New(userService port.UserService, logger port.Logger, tracer trace.Tracer, 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	userHandler := NewUserHandler(userService)
+	var fileHandler *FileHandler
+	if storage != nil {
+		fileHandler = NewFileHandler(storage)
+	}
 
 	v1 := r.Group("/api/v1")
 	{
 		users := v1.Group("/users")
 		{
-			users.POST("", userHandler.Create)
-			users.GET("", userHandler.FindAll)
-			users.GET("/:id", userHandler.FindByID)
-			users.PUT("/:id", userHandler.Update)
-			users.DELETE("/:id", userHandler.Delete)
+			users.POST("", func(c *gin.Context) { Bind(c, stdhttp.StatusCreated, userHandler.Create) })
+			users.GET("", func(c *gin.Context) { Bind(c, stdhttp.StatusOK, userHandler.FindAll) })
+			users.GET("/:id", func(c *gin.Context) { Bind(c, stdhttp.StatusOK, userHandler.FindByID) })
+			users.PUT("/:id", func(c *gin.Context) { Bind(c, stdhttp.StatusOK, userHandler.Update) })
+			users.DELETE("/:id", func(c *gin.Context) { Bind(c, stdhttp.StatusOK, userHandler.Delete) })
+		}
+		
+		if fileHandler != nil {
+			files := v1.Group("/files")
+			{
+				files.POST("/upload", fileHandler.Upload)
+			}
 		}
 	}
 

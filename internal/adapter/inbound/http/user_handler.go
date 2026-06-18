@@ -1,10 +1,7 @@
 package http
 
 import (
-	"errors"
-	"net/http"
-
-	"github.com/gin-gonic/gin"
+	"context"
 
 	"hexagonalarchitecture/internal/adapter/inbound/http/dto"
 	"hexagonalarchitecture/internal/core/port"
@@ -30,23 +27,15 @@ func NewUserHandler(users port.UserService) *UserHandler {
 // @Failure 409 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Router /api/v1/users [post]
-func (h *UserHandler) Create(c *gin.Context) {
-	var request dto.CreateUserRequest
-	if err := c.ShouldBindJSON(&request); err != nil {
-		c.JSON(http.StatusBadRequest, newErrorResponse(port.ErrCodeBadRequest, port.ErrMessageInvalidRequestParams))
-		return
-	}
-
-	user, err := h.users.Create(c.Request.Context(), port.CreateUserInput{
-		Name:  request.Name,
-		Email: request.Email,
+func (h *UserHandler) Create(ctx context.Context, req dto.CreateUserRequest) (dto.UserResponse, error) {
+	user, err := h.users.Create(ctx, port.CreateUserInput{
+		Name:  req.Name,
+		Email: req.Email,
 	})
 	if err != nil {
-		respondError(c, err)
-		return
+		return dto.UserResponse{}, err
 	}
-
-	c.JSON(http.StatusCreated, dto.ToUserResponse(user))
+	return dto.ToUserResponse(user), nil
 }
 
 // FindAllUsers godoc
@@ -57,14 +46,12 @@ func (h *UserHandler) Create(c *gin.Context) {
 // @Success 200 {array} dto.UserResponse
 // @Failure 500 {object} ErrorResponse
 // @Router /api/v1/users [get]
-func (h *UserHandler) FindAll(c *gin.Context) {
-	users, err := h.users.FindAll(c.Request.Context())
+func (h *UserHandler) FindAll(ctx context.Context, _ struct{}) ([]dto.UserResponse, error) {
+	users, err := h.users.FindAll(ctx)
 	if err != nil {
-		respondError(c, err)
-		return
+		return nil, err
 	}
-
-	c.JSON(http.StatusOK, dto.ToUserResponses(users))
+	return dto.ToUserResponses(users), nil
 }
 
 // FindUserByID godoc
@@ -78,14 +65,12 @@ func (h *UserHandler) FindAll(c *gin.Context) {
 // @Failure 404 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Router /api/v1/users/{id} [get]
-func (h *UserHandler) FindByID(c *gin.Context) {
-	user, err := h.users.FindByID(c.Request.Context(), c.Param("id"))
+func (h *UserHandler) FindByID(ctx context.Context, req dto.GetUserRequest) (dto.UserResponse, error) {
+	user, err := h.users.FindByID(ctx, req.ID)
 	if err != nil {
-		respondError(c, err)
-		return
+		return dto.UserResponse{}, err
 	}
-
-	c.JSON(http.StatusOK, dto.ToUserResponse(user))
+	return dto.ToUserResponse(user), nil
 }
 
 // UpdateUser godoc
@@ -102,23 +87,15 @@ func (h *UserHandler) FindByID(c *gin.Context) {
 // @Failure 409 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Router /api/v1/users/{id} [put]
-func (h *UserHandler) Update(c *gin.Context) {
-	var request dto.UpdateUserRequest
-	if err := c.ShouldBindJSON(&request); err != nil {
-		c.JSON(http.StatusBadRequest, newErrorResponse(port.ErrCodeBadRequest, port.ErrMessageInvalidRequestParams))
-		return
-	}
-
-	user, err := h.users.Update(c.Request.Context(), c.Param("id"), port.UpdateUserInput{
-		Name:  request.Name,
-		Email: request.Email,
+func (h *UserHandler) Update(ctx context.Context, req dto.UpdateUserRequest) (dto.UserResponse, error) {
+	user, err := h.users.Update(ctx, req.ID, port.UpdateUserInput{
+		Name:  req.Name,
+		Email: req.Email,
 	})
 	if err != nil {
-		respondError(c, err)
-		return
+		return dto.UserResponse{}, err
 	}
-
-	c.JSON(http.StatusOK, dto.ToUserResponse(user))
+	return dto.ToUserResponse(user), nil
 }
 
 // DeleteUser godoc
@@ -127,44 +104,14 @@ func (h *UserHandler) Update(c *gin.Context) {
 // @Tags Users
 // @Produce json
 // @Param id path string true "User ID"
-// @Success 204
+// @Success 200 {object} SuccessResponse
 // @Failure 400 {object} ErrorResponse
 // @Failure 404 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Router /api/v1/users/{id} [delete]
-func (h *UserHandler) Delete(c *gin.Context) {
-	if err := h.users.Delete(c.Request.Context(), c.Param("id")); err != nil {
-		respondError(c, err)
-		return
+func (h *UserHandler) Delete(ctx context.Context, req dto.DeleteUserRequest) (map[string]string, error) {
+	if err := h.users.Delete(ctx, req.ID); err != nil {
+		return nil, err
 	}
-
-	c.Status(http.StatusNoContent)
-}
-
-func respondError(c *gin.Context, err error) {
-	var appErr *port.AppError
-	if errors.As(err, &appErr) {
-		c.JSON(httpStatusFromAppError(appErr), newErrorResponse(appErr.Code, appErr.Message))
-		return
-	}
-
-	c.JSON(
-		http.StatusInternalServerError,
-		newErrorResponse(port.ErrCodeInternalServer, port.ErrMessageInternalServer),
-	)
-}
-
-func httpStatusFromAppError(err *port.AppError) int {
-	if err.Kind == port.ErrorKindTechnical {
-		return http.StatusInternalServerError
-	}
-
-	switch err.Code {
-	case port.ErrCodeUserNotFound:
-		return http.StatusNotFound
-	case port.ErrCodeUserAlreadyExists:
-		return http.StatusConflict
-	default:
-		return http.StatusBadRequest
-	}
+	return map[string]string{"message": "User deleted successfully"}, nil
 }

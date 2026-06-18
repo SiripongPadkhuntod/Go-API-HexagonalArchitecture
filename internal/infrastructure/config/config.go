@@ -7,9 +7,11 @@ type Config struct {
 	Port        string
 	Database    DatabaseConfig
 	OutboundAPI OutboundAPIConfig
+	Storage     StorageConfig
 }
 
 type DatabaseConfig struct {
+	Driver   string
 	Host     string
 	Port     string
 	User     string
@@ -22,6 +24,14 @@ type OutboundAPIConfig struct {
 	BaseURL string
 }
 
+type StorageConfig struct {
+	Endpoint   string
+	AccessKey  string
+	SecretKey  string
+	UseSSL     bool
+	BucketName string
+}
+
 func Load() Config {
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -31,6 +41,7 @@ func Load() Config {
 	return Config{
 		Port: port,
 		Database: DatabaseConfig{
+			Driver:   envOrDefault("DATABASE_DRIVER", "postgres"),
 			Host:     envOrDefault("DATABASE_HOST", "localhost"),
 			Port:     envOrDefault("DATABASE_PORT", "5439"),
 			User:     envOrDefault("DATABASE_USER", "postgres"),
@@ -41,6 +52,13 @@ func Load() Config {
 		OutboundAPI: OutboundAPIConfig{
 			BaseURL: os.Getenv("OUTBOUND_API_BASE_URL"),
 		},
+		Storage: StorageConfig{
+			Endpoint:   envOrDefault("MINIO_ENDPOINT", "localhost:9000"),
+			AccessKey:  envOrDefault("MINIO_ACCESS_KEY", "root"),
+			SecretKey:  envOrDefault("MINIO_SECRET_KEY", "password123"),
+			UseSSL:     os.Getenv("MINIO_USE_SSL") == "true",
+			BucketName: envOrDefault("MINIO_BUCKET_NAME", "uploads"),
+		},
 	}
 }
 
@@ -48,8 +66,12 @@ func (c Config) ServerAddress() string {
 	return ":" + c.Port
 }
 
-func (d DatabaseConfig) URL() string {
+func (d DatabaseConfig) PostgresURL() string {
 	return "postgres://" + d.User + ":" + d.Password + "@" + d.Host + ":" + d.Port + "/" + d.Name + "?sslmode=" + d.SSLMode
+}
+
+func (d DatabaseConfig) MySQLURL() string {
+	return d.User + ":" + d.Password + "@tcp(" + d.Host + ":" + d.Port + ")/" + d.Name + "?parseTime=true"
 }
 
 func envOrDefault(key, fallback string) string {

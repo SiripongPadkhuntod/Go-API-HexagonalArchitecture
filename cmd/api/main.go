@@ -8,6 +8,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/joho/godotenv"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.opentelemetry.io/otel"
 	"go.uber.org/zap"
@@ -18,10 +19,13 @@ import (
 	"hexagonalarchitecture/internal/adapter/outbound/event/httpclient"
 	"hexagonalarchitecture/internal/adapter/outbound/event/noop"
 	idadapter "hexagonalarchitecture/internal/adapter/outbound/id/uuid"
-	"hexagonalarchitecture/internal/adapter/outbound/repository/postgres"
+	mysqlrepo "hexagonalarchitecture/internal/adapter/outbound/repository/mysql"
+	postgresrepo "hexagonalarchitecture/internal/adapter/outbound/repository/postgres"
+	"hexagonalarchitecture/internal/adapter/outbound/storage/minio"
 	"hexagonalarchitecture/internal/core/port"
 	"hexagonalarchitecture/internal/core/service"
 	"hexagonalarchitecture/internal/infrastructure/config"
+	databasemysql "hexagonalarchitecture/internal/infrastructure/database/mysql"
 	databasepostgres "hexagonalarchitecture/internal/infrastructure/database/postgres"
 	observabilitylogger "hexagonalarchitecture/internal/infrastructure/observability/logger"
 	"hexagonalarchitecture/internal/infrastructure/observability/tracer"
@@ -33,6 +37,8 @@ import (
 // @host localhost:8080
 // @BasePath /
 func main() {
+	_ = godotenv.Load() // Ignore error if .env doesn't exist
+
 	cfg := config.Load()
 
 	logger, err := observabilitylogger.New() // สร้าง instance ของ logger (instance หมายถึง การสร้าง object จาก class)
@@ -61,13 +67,22 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second) // สร้าง context เพื่อรอการปิด
 	defer cancel()                                                           // ปิด context เมื่อโปรแกรมทำงานเสร็จสิ้น
 
-	dbPool, err := databasepostgres.NewPool(ctx, cfg.Database.URL()) // สร้าง instance ของ database pool
-	if err != nil {
-		logger.Fatal("failed to connect database", zap.Error(err)) // แสดงข้อผิดพลาดและหยุดการทำงานของแอปพลิเคชัน
+	var userRepo port.UserRepository
+	if cfg.Database.Driver == "mysql" {
+		dbPool, err := databasemysql.NewPool(ctx, cfg.Database.MySQLURL()) // สร้าง instance ของ database pool
+		if err != nil {
+			logger.Fatal("failed to connect mysql database", zap.Error(err)) // แสดงข้อผิดพลาดและหยุดการทำงานของแอปพลิเคชัน
+		}
+		defer dbPool.Close() // ปิด database pool เมื่อโปรแกรมทำงานเสร็จสิ้น
+		userRepo = mysqlrepo.NewUserRepository(dbPool) // สร้าง instance ของ user repository
+	} else {
+		dbPool, err := databasepostgres.NewPool(ctx, cfg.Database.PostgresURL()) // สร้าง instance ของ database pool
+		if err != nil {
+			logger.Fatal("failed to connect postgres database", zap.Error(err)) // แสดงข้อผิดพลาดและหยุดการทำงานของแอปพลิเคชัน
+		}
+		defer dbPool.Close() // ปิด database pool เมื่อโปรแกรมทำงานเสร็จสิ้น
+		userRepo = postgresrepo.NewUserRepository(dbPool) // สร้าง instance ของ user repository
 	}
-	defer dbPool.Close() // ปิด database pool เมื่อโปรแกรมทำงานเสร็จสิ้น
-
-	userRepo := postgres.NewUserRepository(dbPool) // สร้าง instance ของ user repository
 
 	outboundClient := newOutboundAPIClient(cfg, appLogger)         // สร้าง instance ของ outbound client
 	idGenerator := idadapter.NewGenerator()                        // สร้าง instance ของ id generator
@@ -80,7 +95,17 @@ func main() {
 		Clock:     clock,          // ส่ง clock ไปยัง user service
 	})
 
-	r := httpadapter.New(userService, appLogger, otel.Tracer("hexagonalarchitecture-api"), metricsRegistry) // สร้าง instance ของ http adapter
+	var storagePort port.StoragePort
+	if cfg.Storage.Endpoint != "" {
+		storageAdapter, err := minio.NewMinioStorage(cfg.Storage)
+		if err != nil {
+			logger.Error("failed to connect to storage", zap.Error(err))
+		} else {
+			storagePort = storageAdapter
+		}
+	}
+
+	r := httpadapter.New(userService, storagePort, appLogger, otel.Tracer("hexagonalarchitecture-api"), metricsRegistry) // สร้าง instance ของ http adapter
 	server := &http.Server{                                                                                 // สร้าง instance ของ http server
 		Addr:    cfg.ServerAddress(), // รับค่า addr จาก config
 		Handler: r,                   // รับค่า handler จาก http adapter
