@@ -14,6 +14,7 @@ import (
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
 
+	"hexagonalarchitecture/internal/adapter/inbound/http/response"
 	"hexagonalarchitecture/internal/core/port"
 )
 
@@ -84,7 +85,7 @@ func RecoveryMiddleware(logger port.Logger) gin.HandlerFunc {
 
 				c.AbortWithStatusJSON(
 					http.StatusInternalServerError,
-					newErrorResponse(port.ErrCodeInternalServer, port.ErrMessageInternalServer),
+					response.NewErrorResponse(port.ErrCodeInternalServer, port.ErrMessageInternalServer),
 				)
 			}
 		}()

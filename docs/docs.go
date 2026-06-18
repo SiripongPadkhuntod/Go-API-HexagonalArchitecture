@@ -41,7 +41,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/http.SuccessResponse"
+                            "$ref": "#/definitions/response.SuccessResponse"
                         }
                     }
                 }
@@ -65,12 +65,6 @@ const docTemplate = `{
                             "items": {
                                 "$ref": "#/definitions/dto.UserResponse"
                             }
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/http.ErrorResponse"
                         }
                     }
                 }
@@ -104,24 +98,6 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/dto.UserResponse"
                         }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/http.ErrorResponse"
-                        }
-                    },
-                    "409": {
-                        "description": "Conflict",
-                        "schema": {
-                            "$ref": "#/definitions/http.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/http.ErrorResponse"
-                        }
                     }
                 }
             }
@@ -150,24 +126,6 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/dto.UserResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/http.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/http.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/http.ErrorResponse"
                         }
                     }
                 }
@@ -208,30 +166,6 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/dto.UserResponse"
                         }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/http.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/http.ErrorResponse"
-                        }
-                    },
-                    "409": {
-                        "description": "Conflict",
-                        "schema": {
-                            "$ref": "#/definitions/http.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/http.ErrorResponse"
-                        }
                     }
                 }
             },
@@ -257,25 +191,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/http.SuccessResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/http.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/http.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/http.ErrorResponse"
+                            "$ref": "#/definitions/response.SuccessResponse"
                         }
                     }
                 }
@@ -295,7 +211,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/http.HealthResponse"
+                            "$ref": "#/definitions/handler.HealthResponse"
                         }
                     }
                 }
@@ -357,28 +273,7 @@ const docTemplate = `{
                 }
             }
         },
-        "http.ErrorResponse": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/port.ErrorCode"
-                        }
-                    ],
-                    "example": "9988"
-                },
-                "message": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/port.ErrorMessage"
-                        }
-                    ],
-                    "example": "Invalid request parameters."
-                }
-            }
-        },
-        "http.HealthResponse": {
+        "handler.HealthResponse": {
             "type": "object",
             "properties": {
                 "status": {
@@ -387,7 +282,7 @@ const docTemplate = `{
                 }
             }
         },
-        "http.SuccessResponse": {
+        "response.SuccessResponse": {
             "type": "object",
             "properties": {
                 "data": {},
@@ -396,40 +291,6 @@ const docTemplate = `{
                     "example": "success"
                 }
             }
-        },
-        "port.ErrorCode": {
-            "type": "string",
-            "enum": [
-                "9988",
-                "9987",
-                "9984",
-                "9983",
-                "5000"
-            ],
-            "x-enum-varnames": [
-                "ErrCodeBadRequest",
-                "ErrCodeInvalidInput",
-                "ErrCodeUserNotFound",
-                "ErrCodeUserAlreadyExists",
-                "ErrCodeInternalServer"
-            ]
-        },
-        "port.ErrorMessage": {
-            "type": "string",
-            "enum": [
-                "Invalid request parameters.",
-                "Invalid input",
-                "User not found",
-                "Email is already in use",
-                "Internal Server Error"
-            ],
-            "x-enum-varnames": [
-                "ErrMessageInvalidRequestParams",
-                "ErrMessageInvalidInput",
-                "ErrMessageUserNotFound",
-                "ErrMessageUserAlreadyExists",
-                "ErrMessageInternalServer"
-            ]
         }
     }
 }`

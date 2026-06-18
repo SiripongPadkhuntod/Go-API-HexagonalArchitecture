@@ -1,0 +1,7 @@
+{
+    "go.formatTool": "gofumpt",
+    "go.lintTool": "golangci-lint",
+    "go.useLanguageServer": true,
+    "editor.formatOnSave": true,
+    "files.autoSave": "onFocusChange"
+}

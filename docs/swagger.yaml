@@ -36,58 +36,19 @@ definitions:
       updated_at:
         type: string
     type: object
-  http.ErrorResponse:
-    properties:
-      code:
-        allOf:
-        - $ref: '#/definitions/port.ErrorCode'
-        example: "9988"
-      message:
-        allOf:
-        - $ref: '#/definitions/port.ErrorMessage'
-        example: Invalid request parameters.
-    type: object
-  http.HealthResponse:
+  handler.HealthResponse:
     properties:
       status:
         example: ok
         type: string
     type: object
-  http.SuccessResponse:
+  response.SuccessResponse:
     properties:
       data: {}
       status:
         example: success
         type: string
     type: object
-  port.ErrorCode:
-    enum:
-    - "9988"
-    - "9987"
-    - "9984"
-    - "9983"
-    - "5000"
-    type: string
-    x-enum-varnames:
-    - ErrCodeBadRequest
-    - ErrCodeInvalidInput
-    - ErrCodeUserNotFound
-    - ErrCodeUserAlreadyExists
-    - ErrCodeInternalServer
-  port.ErrorMessage:
-    enum:
-    - Invalid request parameters.
-    - Invalid input
-    - User not found
-    - Email is already in use
-    - Internal Server Error
-    type: string
-    x-enum-varnames:
-    - ErrMessageInvalidRequestParams
-    - ErrMessageInvalidInput
-    - ErrMessageUserNotFound
-    - ErrMessageUserAlreadyExists
-    - ErrMessageInternalServer
 host: localhost:8080
 info:
   contact: {}
@@ -112,7 +73,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/http.SuccessResponse'
+            $ref: '#/definitions/response.SuccessResponse'
       summary: Upload an image
       tags:
       - Files
@@ -128,10 +89,6 @@ paths:
             items:
               $ref: '#/definitions/dto.UserResponse'
             type: array
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/http.ErrorResponse'
       summary: List users
       tags:
       - Users
@@ -153,18 +110,6 @@ paths:
           description: Created
           schema:
             $ref: '#/definitions/dto.UserResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/http.ErrorResponse'
-        "409":
-          description: Conflict
-          schema:
-            $ref: '#/definitions/http.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/http.ErrorResponse'
       summary: Create user
       tags:
       - Users
@@ -183,19 +128,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/http.SuccessResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/http.ErrorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/http.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/http.ErrorResponse'
+            $ref: '#/definitions/response.SuccessResponse'
       summary: Delete user
       tags:
       - Users
@@ -214,18 +147,6 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/dto.UserResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/http.ErrorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/http.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/http.ErrorResponse'
       summary: Get user by ID
       tags:
       - Users
@@ -252,22 +173,6 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/dto.UserResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/http.ErrorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/http.ErrorResponse'
-        "409":
-          description: Conflict
-          schema:
-            $ref: '#/definitions/http.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/http.ErrorResponse'
       summary: Update user
       tags:
       - Users
@@ -280,7 +185,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/http.HealthResponse'
+            $ref: '#/definitions/handler.HealthResponse'
       summary: Health check
       tags:
       - Health

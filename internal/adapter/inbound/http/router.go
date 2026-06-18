@@ -10,6 +10,8 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"go.opentelemetry.io/otel/trace"
 
+	"hexagonalarchitecture/internal/adapter/inbound/http/handler"
+	"hexagonalarchitecture/internal/adapter/inbound/http/response"
 	"hexagonalarchitecture/internal/core/port"
 )
 
@@ -21,25 +23,25 @@ func New(userService port.UserService, storage port.StoragePort, logger port.Log
 		MetricsMiddleware(),
 	)
 
-	r.GET("/health", Health)
+	r.GET("/health", handler.Health)
 	r.GET("/metrics", gin.WrapH(promhttp.HandlerFor(metricsRegistry, promhttp.HandlerOpts{})))
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	userHandler := NewUserHandler(userService)
-	var fileHandler *FileHandler
+	userHandler := handler.NewUserHandler(userService)
+	var fileHandler *handler.FileHandler
 	if storage != nil {
-		fileHandler = NewFileHandler(storage)
+		fileHandler = handler.NewFileHandler(storage)
 	}
 
 	v1 := r.Group("/api/v1")
 	{
 		users := v1.Group("/users")
 		{
-			users.POST("", func(c *gin.Context) { Bind(c, stdhttp.StatusCreated, userHandler.Create) })
-			users.GET("", func(c *gin.Context) { Bind(c, stdhttp.StatusOK, userHandler.FindAll) })
-			users.GET("/:id", func(c *gin.Context) { Bind(c, stdhttp.StatusOK, userHandler.FindByID) })
-			users.PUT("/:id", func(c *gin.Context) { Bind(c, stdhttp.StatusOK, userHandler.Update) })
-			users.DELETE("/:id", func(c *gin.Context) { Bind(c, stdhttp.StatusOK, userHandler.Delete) })
+			users.POST("", func(c *gin.Context) { response.Bind(c, stdhttp.StatusCreated, userHandler.Create) })
+			users.GET("", func(c *gin.Context) { response.Bind(c, stdhttp.StatusOK, userHandler.FindAll) })
+			users.GET("/:id", func(c *gin.Context) { response.Bind(c, stdhttp.StatusOK, userHandler.FindByID) })
+			users.PUT("/:id", func(c *gin.Context) { response.Bind(c, stdhttp.StatusOK, userHandler.Update) })
+			users.DELETE("/:id", func(c *gin.Context) { response.Bind(c, stdhttp.StatusOK, userHandler.Delete) })
 		}
 		
 		if fileHandler != nil {
