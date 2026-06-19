@@ -17,11 +17,11 @@ type DatabaseConfig struct {
 	User     string
 	Password string
 	Name     string
-	SSLMode  string
+	SSLMode  string // คือการตั้งค่าการเชื่อมต่อกับฐานข้อมูล เช่น disable, require, verify-ca, verify-full 
 }
 
 type OutboundAPIConfig struct {
-	BaseURL string
+	BaseURL string // คือการตั้งค่าการเชื่อมต่อกับ outbound API เช่น http://localhost:8081
 }
 
 type StorageConfig struct {

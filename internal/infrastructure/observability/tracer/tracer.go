@@ -25,7 +25,7 @@ func NewProvider() (*sdktrace.TracerProvider, error) {
 	}
 
 	provider := sdktrace.NewTracerProvider(
-		sdktrace.WithBatcher(exporter),
+		sdktrace.WithBatcher(exporter), 
 		sdktrace.WithSampler(sdktrace.AlwaysSample()),
 	)
 
