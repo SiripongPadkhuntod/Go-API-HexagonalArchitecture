@@ -1,0 +1,40 @@
+.
+├── cmd/
+│   └── api/                  # จุดเริ่มต้นของแอปพลิเคชัน (Entry point) 
+│       └── main.go           # ไฟล์รันเซิร์ฟเวอร์ จะทำหน้าที่ประกอบส่วนต่างๆ เข้าด้วยกัน (Dependency Injection)
+│
+├── db/                       # สคริปต์และไฟล์ตั้งต้นของฐานข้อมูล (Database Initialization)
+│   ├── mysql/init/           # สคริปต์ SQL สำหรับสร้างตารางของ MySQL (เช่น 001_create_users.sql)
+│   └── postgres/init/        # สคริปต์ SQL สำหรับสร้างตารางของ PostgreSQL
+│
+├── internal/                 # โค้ดหลักของโปรเจกต์ (จำกัดไม่ให้โปรเจกต์ภายนอกนำไป import ใช้โดยตรง)
+│   │
+│   ├── adapter/              # Adapters: ตัวแปลงข้อมูลระหว่าง Core กับโลกภายนอก
+│   │   ├── inbound/          # 📥 Driving Adapters (ฝั่งรับ Request จากผู้ใช้)
+│   │   │   ├── grpc/         # ตัวจัดการ gRPC
+│   │   │   └── http/         # ตัวจัดการ HTTP REST API (ประกอบด้วย Handlers, Router, Middleware, Metrics)
+│   │   │
+│   │   └── outbound/         # 📤 Driven Adapters (ฝั่งที่ Core สั่งให้ไปคุยกับระบบอื่น)
+│   │       ├── clock/        # ตัวจัดการเรื่องเวลาของระบบ
+│   │       ├── event/        # ตัวจัดการการยิง Event ออกไปภายนอก (เช่น HTTP Client หรือ Noop สำหรับทดสอบ)
+│   │       ├── id/           # ตัวจัดการสร้าง ID (เช่น UUID)
+│   │       ├── repository/   # ตัวจัดการกับฐานข้อมูลที่แยกตามแต่ละเทคโนโลยี
+│   │       │   ├── mysql/    # การทำคำสั่ง CRUD สำหรับ MySQL
+│   │       │   └── postgres/ # การทำคำสั่ง CRUD สำหรับ PostgreSQL
+│   │       └── storage/      # การเชื่อมต่อที่เก็บไฟล์ (เช่น MinIO)
+│   │
+│   ├── core/                 # 🧠 Core / Business Logic (หัวใจหลักของแอปพลิเคชัน จะไม่มีการพึ่งพาระบบภายนอก)
+│   │   ├── domain/           # Entities และ Business Rules หลัก (เช่น โครงสร้างข้อมูล User, Error แบบเฉพาะ)
+│   │   ├── port/             # Interfaces กำหนดข้อตกลง (Contracts) ว่า Core จะรับ/ส่งข้อมูลกับภายนอกอย่างไร
+│   │   └── service/          # Use Cases (การดำเนินงานทางธุรกิจ) เรียกใช้ Domain ผ่านทาง Port
+│   │
+│   └── infrastructure/       # โครงสร้างพื้นฐานทางเทคนิค (เชื่อมต่อระบบและตั้งค่าเริ่มต้น)
+│       ├── config/           # ตัวจัดการโหลด Configuration (เช่น จากไฟล์ .env)
+│       ├── database/         # ตัวสร้างและจัดการ Connection Pool สำหรับฐานข้อมูล (MySQL, Postgres)
+│       └── observability/    # ตัวจัดการเรื่องการสังเกตการทำงานของระบบ (Logging ด้วย Zap, Tracing)
+│
+├── pkg/                      # 📦 โค้ดส่วนกลางหรือไลบรารีที่สามารถเปิดให้โปรเจกต์อื่นนำไปใช้ต่อได้
+│
+├── docker-compose.yml        # ไฟล์ตั้งค่า Docker สำหรับรันเซิร์ฟเวอร์ที่เกี่ยวข้อง (DB, Cache) ในโหมด Development
+├── go.mod / go.sum           # ไฟล์จัดการ Dependencies ของภาษา Go
+└── README.md                 # เอกสารอธิบายโปรเจกต์

@@ -41,9 +41,9 @@ func main() {
 
 	cfg := config.Load()
 
-	logger, err := observabilitylogger.New() // สร้าง instance ของ logger (instance หมายถึง การสร้าง object จาก class)
+	logger, err := observabilitylogger.New() // สร้าง instance ของ logger 
 	if err != nil {
-		panic(err) // panic() ใช้สำหรับหยุดการทำงานของโปรแกรมทันทีเมื่
+		panic(err) // panic() ใช้สำหรับหยุดการทำงานของโปรแกรมทันที
 	}
 	zap.ReplaceGlobals(logger)                             // แทนที่ logger ทั่วโลกด้วย logger ที่สร้างขึ้น
 	defer logger.Sync()                                    // ปิด logger เมื่อโปรแกรมทำงานเสร็จสิ้น

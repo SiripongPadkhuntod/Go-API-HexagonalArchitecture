@@ -5,22 +5,32 @@ A small CRUD REST API built with Gin and a Hexagonal Architecture layout.
 ## Structure
 
 ```text
-cmd/api                         application entrypoint
-internal/core/domain             business entities
-internal/core/port               ports / interfaces
-internal/core/service            use cases / business logic
-internal/adapter/clock           clock adapter
-internal/adapter/id              ID generator adapter
-internal/adapter/handler/http    inbound HTTP adapter with Gin
-internal/adapter/handler/http/dto HTTP request/response DTOs
-internal/adapter/database        database pool adapters
-internal/adapter/repository      outbound database adapters
-internal/adapter/outboundapi     outbound HTTP API adapter with circuit breaker
-internal/config                  runtime configuration
-internal/observability           logger and tracer setup
-pkg                              reusable public packages, when needed
-docs                             generated Swagger docs
-docker                           local infrastructure
+.
+├── cmd/
+│   └── api/                            # application entrypoint
+├── db/                                 # database init scripts (mysql, postgres)
+├── internal/
+│   ├── adapter/
+│   │   ├── inbound/
+│   │   │   ├── grpc/                   # inbound gRPC adapter
+│   │   │   └── http/                   # inbound HTTP adapter (Handlers, Router)
+│   │   └── outbound/
+│   │       ├── clock/                  # system clock adapter
+│   │       ├── event/                  # outbound event/API adapter with circuit breaker
+│   │       ├── id/                     # ID generator adapter
+│   │       ├── repository/             # outbound database adapters (mysql, postgres)
+│   │       └── storage/                # outbound storage adapter (minio)
+│   ├── core/
+│   │   ├── domain/                     # business entities
+│   │   ├── port/                       # ports / interfaces
+│   │   └── service/                    # use cases / business logic
+│   └── infrastructure/
+│       ├── config/                     # runtime configuration
+│       ├── database/                   # database pool connections
+│       └── observability/              # logger and tracer setup
+├── pkg/                                # reusable public packages, when needed
+├── docs/                               # generated Swagger docs
+└── docker-compose.yml                  # local infrastructure orchestration
 ```
 
 ## Run
@@ -97,9 +107,9 @@ Application dependencies are wired in [cmd/api/main.go](cmd/api/main.go) in this
 load config
 init logger and tracer
 init metrics registry
-init PostgreSQL pool
+init database pool (MySQL/PostgreSQL)
 init ID generator and clock
-inject pool into Postgres repository
+inject pool into repository adapter
 inject repository and outbound adapter into usecase
 inject usecase into HTTP handler/router
 start HTTP server with graceful shutdown
@@ -110,8 +120,8 @@ start HTTP server with graceful shutdown
 The project includes an outbound HTTP API adapter with an embedded circuit breaker:
 
 ```text
-internal/core/port/user_event_publisher.go
-internal/adapter/outboundapi/httpclient
+internal/core/port/user_event.go
+internal/adapter/outbound/event/httpclient
 ```
 
 The core depends on the business port `UserEventPublisher`; HTTP request details stay inside the outbound adapter.

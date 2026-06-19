@@ -30,17 +30,17 @@ func (l *ZapAdapter) Fatal(msg string, args ...any) {
 
 func fields(args ...any) []zap.Field {
 	zapFields := make([]zap.Field, 0, len(args)/2)
-	for i := 0; i < len(args); i += 2 {
-		key, ok := args[i].(string)
-		if !ok {
-			zapFields = append(zapFields, zap.Any("arg", args[i]))
+	for i := 0; i < len(args); i += 2 { // เพิ่ม 2 ทุกรอบ เพื่อข้าม key และ value
+		key, ok := args[i].(string) // ตรวจสอบว่า key เป็น string หรือไม่
+		if !ok { // ถ้า key ไม่เป็น string
+			zapFields = append(zapFields, zap.Any("arg", args[i])) // เพิ่ม key เป็น arg
 			continue
 		}
-		if i+1 >= len(args) {
-			zapFields = append(zapFields, zap.Any(key, nil))
+		if i+1 >= len(args) { // ตรวจสอบว่า key ไม่ใช่ตัวสุดท้าย
+			zapFields = append(zapFields, zap.Any(key, nil)) // เพิ่ม key เป็น arg
 			continue
 		}
-		zapFields = append(zapFields, zap.Any(key, args[i+1]))
+		zapFields = append(zapFields, zap.Any(key, args[i+1])) // เพิ่ม key และ value
 	}
 
 	return zapFields
